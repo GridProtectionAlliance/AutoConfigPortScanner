@@ -1,6 +1,6 @@
 theme: jekyll-theme-cayman
-title: udp2serial
-description: UDP to Serial Forwarder
+title: AutoConfigPortScanner
+description: IEEE C37.118 Serial Port Scanner and Configuration Loader
 github:
   repository_name: GridProtectionAlliance/udp2serial
   owner_url: https://www.gridprotectionalliance.org

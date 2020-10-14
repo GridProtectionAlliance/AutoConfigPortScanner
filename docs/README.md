@@ -3,6 +3,8 @@
 # Auto-Config Port Scanner
 IEEE C37.118 Serial Port Scanner and Configuration Loader.
 
+![Screen Shot](ScreenShot.png)
+
 ## Usage with Command Line Parameters
 ```shell
 PortScanner [options]

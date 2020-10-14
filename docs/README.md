@@ -1,6 +1,6 @@
 [![PortScanner](PortScanner.png)](https://gridprotectionalliance.github.io/PortScanner/)
 
-# PortScanner
+# Auto-Config Port Scanner
 IEEE C37.118 Serial Port Scanner and Configuration Loader.
 
 ## Usage with Command Line Parameters

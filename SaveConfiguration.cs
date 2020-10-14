@@ -25,7 +25,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using AutoConfigPortScanner.Model;
 using GSF;
 using GSF.Data;
@@ -100,6 +99,12 @@ namespace AutoConfigPortScanner
 
     partial class MainForm
     {
+        // Connection string parameters of system that is controlling COM connection
+        private const string ControllingConnectionString = "autoStartDataParsingSequence = true; skipDisableRealTimeData = false; disableRealTimeDataOnStop = false";
+
+        // Connection string parameters of system that is only listening to COM connection
+        private const string ListeningConnectionString = "autoStartDataParsingSequence = false; skipDisableRealTimeData = true; disableRealTimeDataOnStop = false";
+
         private Dictionary<string, SignalType> m_deviceSignalTypes;
         private Dictionary<string, SignalType> m_phasorSignalTypes;
 

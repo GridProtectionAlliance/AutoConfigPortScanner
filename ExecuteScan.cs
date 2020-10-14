@@ -36,11 +36,11 @@ namespace AutoConfigPortScanner
 {
     partial class MainForm
     {
-        // Connection string parameters of system that is controlling COM connection
-        private const string ControllingConnectionString = "autoStartDataParsingSequence = true; skipDisableRealTimeData = false; disableRealTimeDataOnStop = false";
-        
-        // Connection string parameters of system that is only listening to COM connection
-        private const string ListeningConnectionString = "autoStartDataParsingSequence = false; skipDisableRealTimeData = true; disableRealTimeDataOnStop = false";
+        // Connection string parameters for active COM connection
+        private const string ActiveScanConnectionString = "autoStartDataParsingSequence = true; skipDisableRealTimeData = false; disableRealTimeDataOnStop = true";
+
+        // Connection string parameters for passive COM connection, e.g., config frame once per minute
+        private const string PassiveScanConnectionString = "autoStartDataParsingSequence = false; skipDisableRealTimeData = true; disableRealTimeDataOnStop = false";
 
         // Connection string template
         private const string ConnectionStringTemplate = "transportProtocol=Serial; port=COM{0}; baudrate={1}; parity={2}; stopbits={3}; databits={4}; dtrenable={5}; rtsenable={6}; {7}";
@@ -183,6 +183,7 @@ namespace AutoConfigPortScanner
                 finally
                 {
                     SetControlEnabledState(buttonScan, true);
+                    m_scanExecutionComplete.Set();
                 }
             },
             cancellationToken);
@@ -191,7 +192,7 @@ namespace AutoConfigPortScanner
         private bool ScanPortWithIDCode(int comPort, int idCode, ScanParameters scanParams, CancellationToken cancellationToken)
         {
             bool autoStartParsingSequenceForScan = scanParams.AutoStartParsingSequenceForScan;
-            string scanConnectionMode = autoStartParsingSequenceForScan ? ControllingConnectionString : ListeningConnectionString;
+            string scanConnectionMode = autoStartParsingSequenceForScan ? ActiveScanConnectionString : PassiveScanConnectionString;
             string connectionString = string.Format(ConnectionStringTemplate, comPort, Settings.BaudRate, Settings.Parity, Settings.StopBits, Settings.DataBits, Settings.DtrEnable, Settings.RtsEnable, scanConnectionMode);
 
             ShowUpdateMessage($"{Tab1}Scanning COM{comPort} with ID code {idCode}...");

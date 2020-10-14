@@ -49,9 +49,11 @@
             this.labelSourceConfig = new System.Windows.Forms.Label();
             this.textBoxSourceConfig = new System.Windows.Forms.TextBox();
             this.buttonBrowseConfig = new System.Windows.Forms.Button();
-            this.selectConfigFileDialog = new System.Windows.Forms.OpenFileDialog();
+            this.openFileDialogSelectConfig = new System.Windows.Forms.OpenFileDialog();
             this.checkBoxAutoStartParsingSequence = new System.Windows.Forms.CheckBox();
             this.errorProvider = new System.Windows.Forms.ErrorProvider(this.components);
+            this.buttonImport = new System.Windows.Forms.Button();
+            this.openFileDialogSelectCSVImport = new System.Windows.Forms.OpenFileDialog();
             this.groupBoxMessages.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).BeginInit();
             this.SuspendLayout();
@@ -285,13 +287,13 @@
             this.buttonBrowseConfig.UseVisualStyleBackColor = true;
             this.buttonBrowseConfig.Click += new System.EventHandler(this.buttonBrowseConfig_Click);
             // 
-            // selectConfigFileDialog
+            // openFileDialogSelectConfig
             // 
-            this.selectConfigFileDialog.DefaultExt = "exe.config";
-            this.selectConfigFileDialog.Filter = "Confg Files|*.config|All Files|*.*";
-            this.selectConfigFileDialog.InitialDirectory = "C:\\Program Files\\";
-            this.selectConfigFileDialog.RestoreDirectory = true;
-            this.selectConfigFileDialog.Title = "Select Source TSF Host Application Configuration File";
+            this.openFileDialogSelectConfig.DefaultExt = "exe.config";
+            this.openFileDialogSelectConfig.Filter = "Confg Files|*.exe.config|All Files|*.*";
+            this.openFileDialogSelectConfig.InitialDirectory = "C:\\Program Files\\";
+            this.openFileDialogSelectConfig.RestoreDirectory = true;
+            this.openFileDialogSelectConfig.Title = "Select Source TSF Host Application Configuration File";
             // 
             // checkBoxAutoStartParsingSequence
             // 
@@ -308,6 +310,25 @@
             // 
             this.errorProvider.ContainerControl = this;
             // 
+            // buttonImport
+            // 
+            this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonImport.Location = new System.Drawing.Point(738, 82);
+            this.buttonImport.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
+            this.buttonImport.Name = "buttonImport";
+            this.buttonImport.Size = new System.Drawing.Size(91, 33);
+            this.buttonImport.TabIndex = 19;
+            this.buttonImport.Text = "&Import";
+            this.buttonImport.UseVisualStyleBackColor = true;
+            this.buttonImport.Click += new System.EventHandler(this.buttonImport_Click);
+            // 
+            // openFileDialogSelectCSVImport
+            // 
+            this.openFileDialogSelectCSVImport.DefaultExt = "csv";
+            this.openFileDialogSelectCSVImport.Filter = "CSV Files|*.csv|All Files|*.*";
+            this.openFileDialogSelectCSVImport.RestoreDirectory = true;
+            this.openFileDialogSelectCSVImport.Title = "Select CSV File with Serial Port Number to ID Code Mapping";
+            // 
             // MainForm
             // 
             this.AcceptButton = this.buttonScan;
@@ -315,6 +336,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
             this.ClientSize = new System.Drawing.Size(840, 522);
+            this.Controls.Add(this.buttonImport);
             this.Controls.Add(this.checkBoxAutoStartParsingSequence);
             this.Controls.Add(this.linkLabelClearConsole);
             this.Controls.Add(this.buttonBrowseConfig);
@@ -371,10 +393,12 @@
         private System.Windows.Forms.Label labelSourceConfig;
         private System.Windows.Forms.TextBox textBoxSourceConfig;
         private System.Windows.Forms.Button buttonBrowseConfig;
-        private System.Windows.Forms.OpenFileDialog selectConfigFileDialog;
+        private System.Windows.Forms.OpenFileDialog openFileDialogSelectConfig;
         private System.Windows.Forms.LinkLabel linkLabelClearConsole;
         private System.Windows.Forms.CheckBox checkBoxAutoStartParsingSequence;
         private System.Windows.Forms.ErrorProvider errorProvider;
+        private System.Windows.Forms.Button buttonImport;
+        private System.Windows.Forms.OpenFileDialog openFileDialogSelectCSVImport;
     }
 }
 

@@ -22,12 +22,14 @@
 //******************************************************************************************************
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using AutoConfigPortScanner.Model;
@@ -36,6 +38,7 @@ using GSF.Data;
 using GSF.Data.Model;
 using GSF.Diagnostics;
 using GSF.Threading;
+using Microsoft.VisualBasic.FileIO;
 
 namespace AutoConfigPortScanner
 {
@@ -46,6 +49,7 @@ namespace AutoConfigPortScanner
         private CancellationTokenSource m_cancellationTokenSource;
         private readonly StringBuilder m_messages;
         private readonly ShortSynchronizedOperation m_appendOutputMessages;
+        private ManualResetEventSlim m_scanExecutionComplete;
         private readonly LogPublisher m_log;
 
         public Settings Settings { get; set; }
@@ -200,8 +204,8 @@ namespace AutoConfigPortScanner
 
         private void buttonBrowseConfig_Click(object sender, EventArgs e)
         {
-            if (selectConfigFileDialog.ShowDialog(this) == DialogResult.OK)
-                textBoxSourceConfig.Text = selectConfigFileDialog.FileName;
+            if (openFileDialogSelectConfig.ShowDialog(this) == DialogResult.OK)
+                textBoxSourceConfig.Text = openFileDialogSelectConfig.FileName;
         }
 
         private void buttonScan_Click(object sender, EventArgs e)
@@ -209,6 +213,11 @@ namespace AutoConfigPortScanner
             string configFile = FilePath.GetAbsolutePath(textBoxSourceConfig.Text);
             Guid nodeID;
             string connectionString, dataProviderString;
+
+            if (m_scanExecutionComplete is null)
+                m_scanExecutionComplete = new ManualResetEventSlim(false);
+
+            m_scanExecutionComplete.Reset();
 
             try
             {
@@ -253,6 +262,7 @@ namespace AutoConfigPortScanner
             {
                 ShowUpdateMessage($"ERROR: Failed while attempting to parse settings from \"{Path.GetFileName(configFile)}\": {ex.Message}");
                 m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+                m_scanExecutionComplete.Set();
                 return;
             }
 
@@ -290,12 +300,101 @@ namespace AutoConfigPortScanner
             {
                 ShowUpdateMessage($"ERROR: Failed while attempting to open database configured in \"{Path.GetFileName(configFile)}\": {ex.Message}");
                 m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+                m_scanExecutionComplete.Set();
             }
         }
 
         private void buttonSettings_Click(object sender, EventArgs e)
         {
             Process.Start("notepad.exe", GetSettingsFileName());
+        }
+
+        private void buttonImport_Click(object sender, EventArgs e)
+        {
+            if (openFileDialogSelectCSVImport.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            string csvFile = openFileDialogSelectCSVImport.FileName;
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    SetControlEnabledState(buttonImport, false);
+
+                    Dictionary<int, int> comPortIDCodeMap = new Dictionary<int, int>();
+
+                    try
+                    {
+                        using (TextFieldParser parser = new TextFieldParser(openFileDialogSelectCSVImport.FileName))
+                        {
+                            parser.TextFieldType = FieldType.Delimited;
+                            parser.SetDelimiters(",");
+
+                            while (!parser.EndOfData)
+                            {
+                                string[] fields = parser.ReadFields();
+
+                                if (!(fields?.Length > 1))
+                                    continue;
+
+                                if (fields[0].StartsWith("COM", StringComparison.OrdinalIgnoreCase) && fields.Length > 3)
+                                    fields[0] = fields[0].Substring(3);
+
+                                if (ushort.TryParse(fields[0], out ushort comPort) && ushort.TryParse(fields[1], out ushort idCode))
+                                    comPortIDCodeMap[comPort] = idCode;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowUpdateMessage($"ERROR: Failed while attempting to parse CSV file \"{Path.GetFileName(csvFile)}\": {ex.Message}");
+                        m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+                        return;
+                    }
+
+                    // Save original settings
+                    string orgStartComPort = textBoxStartComPort.Text;
+                    string orgEndComPort = textBoxEndComPort.Text;
+                    string orgStartIDCode = textBoxStartIDCode.Text;
+                    string orgEndIDCode = textBoxEndIDCode.Text;
+                    
+                    try
+                    {
+                        // Scan each row in import file
+                        foreach (KeyValuePair<int, int> kvp in comPortIDCodeMap)
+                        {
+                            int comPort = kvp.Key;
+                            int idCode = kvp.Value;
+
+                            textBoxStartComPort.Text = comPort.ToString();
+                            textBoxEndComPort.Text = comPort.ToString();
+                            textBoxStartIDCode.Text = idCode.ToString();
+                            textBoxEndIDCode.Text = idCode.ToString();
+
+                            buttonScan_Click(buttonScan, e);
+                            m_scanExecutionComplete.Wait();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowUpdateMessage($"ERROR: Failed while attempting to scan COM port to ID code mappings in CSV file \"{Path.GetFileName(csvFile)}\": {ex.Message}");
+                        m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+                    }
+                    finally
+                    {
+                        // Restore original settings
+                        textBoxStartComPort.Text = orgStartComPort;
+                        textBoxEndComPort.Text = orgEndComPort;
+                        textBoxStartIDCode.Text = orgStartIDCode;
+                        textBoxEndIDCode.Text = orgEndIDCode;
+                    }
+                }
+                finally
+                {
+                    SetControlEnabledState(buttonImport, true);
+                }
+            });
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)

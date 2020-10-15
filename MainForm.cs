@@ -328,6 +328,15 @@ namespace AutoConfigPortScanner
 
             string csvFile = FilePath.GetAbsolutePath(openFileDialogSelectCSVImport.FileName);
 
+            UpdateProgressBar(0);
+            ShowUpdateMessage("");
+
+            if (!File.Exists(csvFile))
+            {
+                ShowUpdateMessage($"CSV import file \"{csvFile}\" was not found. Import canceled.");
+                return;
+            }
+
             Task.Run(() =>
             {
                 try
@@ -366,6 +375,14 @@ namespace AutoConfigPortScanner
                         return;
                     }
 
+                    if (comPortIDCodeMap.Count == 0)
+                    {
+                        ShowUpdateMessage($"No mappings found in CSV import file \"{csvFile}\".{Environment.NewLine}    Verify format: column 1 should be COM port and column 2 should be ID code.");
+                        return;
+                    }
+
+                    ShowUpdateMessage($"Loaded {comPortIDCodeMap.Count:N0} mappings from CSV import file \"{csvFile}\", starting scan and import...");
+
                     Ticks startTime = DateTime.UtcNow.Ticks;
                     int mappings = 0;
 
@@ -376,7 +393,6 @@ namespace AutoConfigPortScanner
                     string orgEndIDCode = textBoxEndIDCode.Text;
 
                     SetProgressBarMinMax(0, comPortIDCodeMap.Count);
-                    UpdateProgressBar(0);
 
                     try
                     {

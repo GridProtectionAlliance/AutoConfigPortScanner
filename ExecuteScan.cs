@@ -135,8 +135,12 @@ namespace AutoConfigPortScanner
                     // Hold onto to device list, useful when saving configurations later (no need to re-query)
                     scanParams.Devices = devices;
 
-                    SetProgressBarMinMax(startCOMPort - 1, endCOMPort);
-                    UpdateProgressBar(0);
+                    // Only control progress bar for manual (non-import) scans
+                    if (buttonImport.Enabled)
+                    {
+                        SetProgressBarMinMax(startCOMPort - 1, endCOMPort);
+                        UpdateProgressBar(0);
+                    }
 
                     for (int comPort = startCOMPort; comPort <= endCOMPort; comPort++)
                     {
@@ -167,7 +171,10 @@ namespace AutoConfigPortScanner
 
                         ShowUpdateMessage($"Completed scan for COM{comPort}.{Environment.NewLine}");
                         scannedPorts++;
-                        UpdateProgressBar(comPort);
+
+                        // Only control progress bar for manual (non-import) scans
+                        if (buttonImport.Enabled)
+                            UpdateProgressBar(comPort);
                     }
 
                     ShowUpdateMessage($"Completed scan for {scannedPorts:N0} COM ports in {(DateTime.UtcNow.Ticks - startTime).ToElapsedTimeString(3)}");

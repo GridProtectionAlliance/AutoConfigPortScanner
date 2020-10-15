@@ -33,11 +33,13 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
 using AutoConfigPortScanner.Model;
-using Gemstone.IO;
+using GSF;
 using GSF.Data;
 using GSF.Data.Model;
 using GSF.Diagnostics;
+using GSF.IO;
 using GSF.Threading;
+using GSF.Units;
 using Microsoft.VisualBasic.FileIO;
 
 namespace AutoConfigPortScanner
@@ -72,6 +74,8 @@ namespace AutoConfigPortScanner
             {
                 StringBuilder message = new StringBuilder();
 
+                message.AppendLine($"System COM Port Range: COM{Settings.MinPortNumber} to COM{Settings.MaxPortNumber}");
+                message.AppendLine();
                 message.AppendLine("Loaded COM Port Settings:");
                 message.AppendLine($"      Baud Rate: {Settings.BaudRate}");
                 message.AppendLine($"      Data Bits: {Settings.DataBits}");
@@ -81,8 +85,9 @@ namespace AutoConfigPortScanner
                 message.AppendLine($"    RTS Enabled: {Settings.RtsEnable}");
                 message.AppendLine();
                 message.AppendLine("Loaded non-UI Port Scan Settings:");
-                message.AppendLine($"    Config ASPS: {Settings.AutoStartParsingSequenceForConfig} - for initiating parsing sequence from configured device connection");
-                message.AppendLine($"    COM Timeout: {Settings.ResponseTimeout}ms");
+                message.AppendLine($"    Config ASPS: {Settings.AutoStartParsingSequenceForConfig} -> set to add \"{(Settings.AutoStartParsingSequenceForConfig ? "CONTROLLING" : "LISTENING")}\" connection for device configurations");
+                message.AppendLine($"    COM Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ResponseTimeout).TotalSeconds, 3)}");
+                message.AppendLine($" Config Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ConfigFrameTimeout).TotalSeconds, 3)}");
 
                 ShowUpdateMessage(message.ToString());
 
@@ -147,6 +152,9 @@ namespace AutoConfigPortScanner
             if (!ushort.TryParse(textBoxStartComPort.Text.Trim(), out ushort startCOMPort))
                 SetError(sender, e, "Invalid start COM port");
 
+            if (startCOMPort < Settings.MinPortNumber || startCOMPort > Settings.MaxPortNumber)
+                SetError(sender, e, $"Start COM port is out of range: COM{Settings.MinPortNumber} to COM{Settings.MaxPortNumber}");
+
             if (ushort.TryParse(textBoxEndComPort.Text.Trim(), out ushort endCOMPort) && startCOMPort > endCOMPort)
                 SetError(sender, e, "Start COM port must be less then end COM port");
         }
@@ -161,6 +169,9 @@ namespace AutoConfigPortScanner
         {
             if (!ushort.TryParse(textBoxEndComPort.Text.Trim(), out ushort endCOMPort))
                 SetError(sender, e, "Invalid end COM port");
+
+            if (endCOMPort < Settings.MinPortNumber || endCOMPort > Settings.MaxPortNumber)
+                SetError(sender, e, $"End COM port is out of range: COM{Settings.MinPortNumber} to COM{Settings.MaxPortNumber}");
 
             if (ushort.TryParse(textBoxStartComPort.Text.Trim(), out ushort startCOMPort) && endCOMPort < startCOMPort)
                 SetError(sender, e, "End COM port must be greater then start COM port");
@@ -270,7 +281,8 @@ namespace AutoConfigPortScanner
             {
                 AdoDataConnection connection = new AdoDataConnection(connectionString, dataProviderString);
                 StringBuilder message = new StringBuilder();
-                
+
+                message.AppendLine();
                 message.AppendLine($"Opened database configured in \"{Path.GetFileName(configFile)}\":");
                 message.AppendLine($"        Node ID: {nodeID}");
                 
@@ -314,19 +326,20 @@ namespace AutoConfigPortScanner
             if (openFileDialogSelectCSVImport.ShowDialog(this) != DialogResult.OK)
                 return;
 
-            string csvFile = openFileDialogSelectCSVImport.FileName;
+            string csvFile = FilePath.GetAbsolutePath(openFileDialogSelectCSVImport.FileName);
 
             Task.Run(() =>
             {
                 try
                 {
                     SetControlEnabledState(buttonImport, false);
+                    m_cancellationTokenSource = new CancellationTokenSource();
 
                     Dictionary<int, int> comPortIDCodeMap = new Dictionary<int, int>();
 
                     try
                     {
-                        using (TextFieldParser parser = new TextFieldParser(openFileDialogSelectCSVImport.FileName))
+                        using (TextFieldParser parser = new TextFieldParser(csvFile))
                         {
                             parser.TextFieldType = FieldType.Delimited;
                             parser.SetDelimiters(",");
@@ -353,12 +366,18 @@ namespace AutoConfigPortScanner
                         return;
                     }
 
+                    Ticks startTime = DateTime.UtcNow.Ticks;
+                    int mappings = 0;
+
                     // Save original settings
                     string orgStartComPort = textBoxStartComPort.Text;
                     string orgEndComPort = textBoxEndComPort.Text;
                     string orgStartIDCode = textBoxStartIDCode.Text;
                     string orgEndIDCode = textBoxEndIDCode.Text;
-                    
+
+                    SetProgressBarMinMax(0, comPortIDCodeMap.Count);
+                    UpdateProgressBar(0);
+
                     try
                     {
                         // Scan each row in import file
@@ -367,13 +386,19 @@ namespace AutoConfigPortScanner
                             int comPort = kvp.Key;
                             int idCode = kvp.Value;
 
-                            textBoxStartComPort.Text = comPort.ToString();
-                            textBoxEndComPort.Text = comPort.ToString();
-                            textBoxStartIDCode.Text = idCode.ToString();
-                            textBoxEndIDCode.Text = idCode.ToString();
+                            SetTextBoxText(textBoxStartComPort, comPort.ToString());
+                            SetTextBoxText(textBoxEndComPort, comPort.ToString());
+                            SetTextBoxText(textBoxStartIDCode, idCode.ToString());
+                            SetTextBoxText(textBoxEndIDCode, idCode.ToString());
 
                             buttonScan_Click(buttonScan, e);
                             m_scanExecutionComplete.Wait();
+
+                            if (m_cancellationTokenSource?.IsCancellationRequested ?? false)
+                                break;
+
+                            mappings++;
+                            UpdateProgressBar(mappings);
                         }
                     }
                     catch (Exception ex)
@@ -384,10 +409,15 @@ namespace AutoConfigPortScanner
                     finally
                     {
                         // Restore original settings
-                        textBoxStartComPort.Text = orgStartComPort;
-                        textBoxEndComPort.Text = orgEndComPort;
-                        textBoxStartIDCode.Text = orgStartIDCode;
-                        textBoxEndIDCode.Text = orgEndIDCode;
+                        SetTextBoxText(textBoxStartComPort, orgStartComPort);
+                        SetTextBoxText(textBoxEndComPort, orgEndComPort);
+                        SetTextBoxText(textBoxStartIDCode, orgStartIDCode);
+                        SetTextBoxText(textBoxEndIDCode, orgEndIDCode);
+
+                        if (m_cancellationTokenSource?.IsCancellationRequested ?? false)
+                            ShowUpdateMessage($"{Environment.NewLine}Import canceled after running for {(DateTime.UtcNow.Ticks - startTime).ToElapsedTimeString(3)}. Completed {mappings:N0} mappings from CSV file \"{Path.GetFileName(csvFile)}\" before cancel.");
+                        else
+                            ShowUpdateMessage($"{Environment.NewLine}Import for {mappings:N0} mappings in CSV file \"{Path.GetFileName(csvFile)}\" completed in {(DateTime.UtcNow.Ticks - startTime).ToElapsedTimeString(3)}");
                     }
                 }
                 finally
@@ -418,9 +448,20 @@ namespace AutoConfigPortScanner
             return Path.Combine(appDataPath, nameof(AutoConfigPortScanner), "settings.ini");
         }
 
+        private void SetTextBoxText(TextBox textBox, string text)
+        {
+            if (m_formClosing || textBox is null)
+                return;
+
+            if (InvokeRequired)
+                BeginInvoke(new Action<TextBox, string>(SetTextBoxText), textBox, text);
+            else
+                textBox.Text = text;
+        }
+
         private void SetError(object sender, CancelEventArgs e, string message)
         {
-            if (m_formClosing || !(sender is Control control))
+            if (m_formClosing || sender is null || !(sender is Control control))
                 return;
 
             if (InvokeRequired)
@@ -438,7 +479,7 @@ namespace AutoConfigPortScanner
 
         private void ClearError(object sender)
         {
-            if (m_formClosing || !(sender is Control control))
+            if (m_formClosing || sender is null || !(sender is Control control))
                 return;
 
             if (InvokeRequired)
@@ -454,7 +495,7 @@ namespace AutoConfigPortScanner
 
         private void SelectAll(object sender, EventArgs eventArgs)
         {
-            if (!m_formLoaded || !(sender is TextBox textBox))
+            if (!m_formLoaded || sender is null || !(sender is TextBox textBox))
                 return;
 
             textBox.SelectAll();
@@ -504,7 +545,7 @@ namespace AutoConfigPortScanner
 
         private void SetControlEnabledState(Control control, bool state)
         {
-            if (m_formClosing)
+            if (m_formClosing || control is null)
                 return;
 
             if (InvokeRequired)

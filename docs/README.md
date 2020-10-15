@@ -28,9 +28,9 @@ PortScanner -b=9600
 ```
 
 ## Default Settings File
-Default settings for optional parameters, e.g., serial baud rate and parity, are configured in a `settings.ini` file. This file will be automatically created when the application is first run. The location for this configuration file is `C:\ProgramData\PortScanner\settings.ini`.
+Default settings for optional parameters, e.g., serial baud rate and parity, are configured in a `settings.ini` file. This file will be automatically created when the application is first run. The location for this configuration file is `C:\ProgramData\AutoConfigPortScanner\settings.ini`.
 
-The original default values are initially commented out. Following is an example of the default settings file with a few overrides:
+The original default values are initially commented out. Following is an example of the default settings file with an override:
 
 ```ini
 [Serial]

@@ -197,6 +197,10 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="docs\coding-style.md" />
+    <None Include="docs\README.md" />
+    <None Include="docs\SECURITY.md" />
+    <None Include="docs\_config.yml" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -212,6 +216,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="docs\PortScanner.png" />
+    <Content Include="docs\ScreenShot.png" />
+    <Content Include="docs\_includes\anchor_headings.html" />
+    <Content Include="docs\_layouts\default.html" />
     <Content Include="PortScanner.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

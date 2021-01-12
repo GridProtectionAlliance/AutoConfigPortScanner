@@ -1,6 +1,5 @@
-[![PortScanner](PortScanner.png)](https://gridprotectionalliance.github.io/PortScanner/)
+[![PortScanner](https://gridprotectionalliance.org/images/products/productTitles75/ACPScanner.png)](https://gridprotectionalliance.github.io/PortScanner/)
 
-# Auto-Config Port Scanner
 IEEE C37.118 Serial Port Scanner and Configuration Loader.
 
 ![Screen Shot](ScreenShot.png)
@@ -59,3 +58,4 @@ BaudRate=9600
 ; enabled during serial communication.
 ;RtsEnable=False
 ```
+![PortScanner](PortScanner.png)

@@ -94,14 +94,13 @@ namespace AutoConfigPortScanner
                     SetControlEnabledState(buttonScan, false);
 
                     TableOperations<Device> deviceTable = scanParams.DeviceTable;
-                    int startCOMPort = scanParams.StartCOMPort;
-                    int endCOMPort = scanParams.EndCOMPort;
-                    int startIDCode = scanParams.StartIDCode;
-                    int endIDCode = scanParams.EndIDCode;
+                    ushort startCOMPort = scanParams.StartCOMPort;
+                    ushort endCOMPort = scanParams.EndCOMPort;
+                    ushort[] idCodes = scanParams.IDCodes;
                     bool rescan = scanParams.Rescan;
                     int scannedPorts = 0;
-                    HashSet<int> configuredPorts = new();
-                    HashSet<int> configuredIDCodes = new();
+                    HashSet<ushort> configuredPorts = new();
+                    HashSet<ushort> configuredIDCodes = new();
 
                     ShowUpdateMessage("Reading existing configuration...");
                     Device[] devices = deviceTable.QueryRecordsWhere("IsConcentrator = 0").ToArray();
@@ -123,7 +122,7 @@ namespace AutoConfigPortScanner
                             if (settings.TryGetValue("port", out string portVal) && ushort.TryParse(portVal, out ushort port))
                                 configuredPorts.Add(port);
 
-                            configuredIDCodes.Add(device.AccessID);
+                            configuredIDCodes.Add((ushort)device.AccessID);
                         }
 
                         ShowUpdateMessage($"{Tab1}Discovered {devices.Length:N0} existing devices, {configuredPorts.Count:N0} configured COM ports and {configuredIDCodes.Count:N0} unique ID codes{Environment.NewLine}");
@@ -139,7 +138,7 @@ namespace AutoConfigPortScanner
                         UpdateProgressBar(0);
                     }
 
-                    for (int comPort = startCOMPort; comPort <= endCOMPort; comPort++)
+                    for (ushort comPort = startCOMPort; comPort <= endCOMPort; comPort++)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         
@@ -151,19 +150,19 @@ namespace AutoConfigPortScanner
                         
                         ShowUpdateMessage($"Starting scan for COM{comPort}...");
 
-                        for (int idCode = startIDCode; idCode <= endIDCode; idCode++)
+                        foreach (ushort idCode in idCodes)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
                             if (configuredIDCodes.Contains(idCode))
                                 continue;
 
-                            if (ScanPortWithIDCode(comPort, idCode, scanParams, cancellationToken))
-                            {
-                                // Shorten ID code scan list as new devices are detected
-                                configuredIDCodes.Add(idCode);
-                                break;
-                            }
+                            if (!ScanPortWithIDCode(comPort, idCode, scanParams, cancellationToken))
+                                continue;
+
+                            // Shorten ID code scan list as new devices are detected
+                            configuredIDCodes.Add(idCode);
+                            break;
                         }
 
                         ShowUpdateMessage($"Completed scan for COM{comPort}.{Environment.NewLine}");

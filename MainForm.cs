@@ -53,6 +53,7 @@ namespace AutoConfigPortScanner
         private readonly ShortSynchronizedOperation m_appendOutputMessages;
         private ManualResetEventSlim m_scanExecutionComplete;
         private readonly LogPublisher m_log;
+        private readonly bool m_debugBuild;
 
         public Settings Settings { get; set; }
 
@@ -64,6 +65,10 @@ namespace AutoConfigPortScanner
 
             // Create a new log publisher instance
             m_log = Logger.CreatePublisher(typeof(MainForm), MessageClass.Application);
+
+        #if DEBUG
+            m_debugBuild = true;
+        #endif
         }
 
         #region [ UI Event Handlers ]
@@ -96,6 +101,7 @@ namespace AutoConfigPortScanner
                 textBoxEndComPort.Text = Settings.EndComPort.ToString();
                 textBoxStartIDCode.Text = Settings.StartIDCode.ToString();
                 textBoxEndIDCode.Text = Settings.EndIDCode.ToString();
+                textBoxIDCodes.Text = string.Join(", ", Settings.IDCodes);
                 checkBoxRescan.Checked = Settings.Rescan;
                 checkBoxAutoStartParsingSequence.Checked = Settings.AutoStartParsingSequenceForScan;
                 textBoxSourceConfig.Text = Settings.SourceConfig;
@@ -131,6 +137,9 @@ namespace AutoConfigPortScanner
                 if (ushort.TryParse(textBoxEndIDCode.Text, out ushort endIDCode))
                     Settings.EndIDCode = endIDCode;
 
+                Settings.IDCodes = string.IsNullOrWhiteSpace(textBoxIDCodes.Text) ? Array.Empty<ushort>() : 
+                    textBoxIDCodes.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(value => ushort.Parse(value.Trim())).ToArray();
+
                 Settings.Rescan = checkBoxRescan.Checked;
                 Settings.AutoStartParsingSequenceForScan = checkBoxAutoStartParsingSequence.Checked;
                 Settings.SourceConfig = textBoxSourceConfig.Text;
@@ -152,7 +161,7 @@ namespace AutoConfigPortScanner
             if (!ushort.TryParse(textBoxStartComPort.Text.Trim(), out ushort startCOMPort))
                 SetError(sender, e, "Invalid start COM port");
 
-            if (startCOMPort < Settings.MinPortNumber || startCOMPort > Settings.MaxPortNumber)
+            if (startCOMPort < Settings.MinPortNumber || startCOMPort > Settings.MaxPortNumber && !m_debugBuild)
                 SetError(sender, e, $"Start COM port is out of range: COM{Settings.MinPortNumber} to COM{Settings.MaxPortNumber}");
 
             if (ushort.TryParse(textBoxEndComPort.Text.Trim(), out ushort endCOMPort) && startCOMPort > endCOMPort)
@@ -161,7 +170,7 @@ namespace AutoConfigPortScanner
 
         private void textBoxStartComPort_Validated(object sender, EventArgs e)
         {
-            Settings.StartComPort = int.Parse(textBoxStartComPort.Text.Trim());
+            Settings.StartComPort = ushort.Parse(textBoxStartComPort.Text.Trim());
             ClearError(sender);
         }
 
@@ -170,7 +179,7 @@ namespace AutoConfigPortScanner
             if (!ushort.TryParse(textBoxEndComPort.Text.Trim(), out ushort endCOMPort))
                 SetError(sender, e, "Invalid end COM port");
 
-            if (endCOMPort < Settings.MinPortNumber || endCOMPort > Settings.MaxPortNumber)
+            if (endCOMPort < Settings.MinPortNumber || endCOMPort > Settings.MaxPortNumber && !m_debugBuild)
                 SetError(sender, e, $"End COM port is out of range: COM{Settings.MinPortNumber} to COM{Settings.MaxPortNumber}");
 
             if (ushort.TryParse(textBoxStartComPort.Text.Trim(), out ushort startCOMPort) && endCOMPort < startCOMPort)
@@ -179,7 +188,7 @@ namespace AutoConfigPortScanner
 
         private void textBoxEndComPort_Validated(object sender, EventArgs e)
         {
-            Settings.EndComPort = int.Parse(textBoxEndComPort.Text.Trim());
+            Settings.EndComPort = ushort.Parse(textBoxEndComPort.Text.Trim());
             ClearError(sender);
         }
 
@@ -194,7 +203,7 @@ namespace AutoConfigPortScanner
 
         private void textBoxStartIDCode_Validated(object sender, EventArgs e)
         {
-            Settings.StartIDCode = int.Parse(textBoxStartIDCode.Text.Trim());
+            Settings.StartIDCode = ushort.Parse(textBoxStartIDCode.Text.Trim());
             ClearError(sender);
         }
 
@@ -209,8 +218,50 @@ namespace AutoConfigPortScanner
 
         private void textBoxEndIDCode_Validated(object sender, EventArgs e)
         {
-            Settings.EndIDCode = int.Parse(textBoxEndIDCode.Text.Trim());
+            Settings.EndIDCode = ushort.Parse(textBoxEndIDCode.Text.Trim());
             ClearError(sender);
+        }
+
+        private void textBoxIDCodeValues_TextChanged(object sender, EventArgs e)
+        {
+            textBoxStartIDCode.Enabled = textBoxEndIDCode.Enabled = string.IsNullOrWhiteSpace(textBoxIDCodes.Text);
+        }
+
+        private void textBoxIDCodeValues_Validating(object sender, CancelEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(textBoxIDCodes.Text) && textBoxIDCodes.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Any(value => !ushort.TryParse(value.Trim(), out _)))
+                SetError(sender, e, "Invalid ID code list");
+        }
+
+        private void textBoxIDCodeValues_Validated(object sender, EventArgs e)
+        {
+            Settings.IDCodes = textBoxIDCodes.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(value => ushort.Parse(value.Trim())).ToArray();
+            ClearError(sender);
+        }
+
+        private void buttonBrowseIDCodes_Click(object sender, EventArgs e)
+        {
+            if (openFileDialogSelectIDCodes.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            try
+            {
+                List<ushort> idCodes = new();
+                string[] values = File.ReadAllText(openFileDialogSelectIDCodes.FileName).Split(new[] { ",", "\r\n", "\n", "\t", " " }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (string value in values)
+                {
+                    if (ushort.TryParse(value, out ushort idCode))
+                        idCodes.Add(idCode);
+                }
+
+                textBoxIDCodes.Text = string.Join(", ", idCodes);
+            }
+            catch (Exception ex)
+            {
+                ShowUpdateMessage($"ERROR: Failed while attempting to load ID codes from  \"{Path.GetFileName(openFileDialogSelectIDCodes.FileName)}\": {ex.Message}");
+                m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+            }
         }
 
         private void buttonBrowseConfig_Click(object sender, EventArgs e)
@@ -288,15 +339,21 @@ namespace AutoConfigPortScanner
 
                 m_cancellationTokenSource = new CancellationTokenSource();
 
+                ushort startIDCode = ushort.Parse(textBoxStartIDCode.Text);
+                ushort endIDCode = ushort.Parse(textBoxEndIDCode.Text);
+
+                ushort[] idCodes = string.IsNullOrWhiteSpace(textBoxIDCodes.Text) ? 
+                    Enumerable.Range(startIDCode, endIDCode - startIDCode + 1).Select(value => (ushort)value).ToArray() : 
+                    textBoxIDCodes.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(value => ushort.Parse(value.Trim())).ToArray();
+
                 ExecuteScan(new ScanParameters
                 {
                     Connection = connection,
                     DeviceTable = new TableOperations<Device>(connection),
                     NodeID = nodeID,
-                    StartCOMPort = int.Parse(textBoxStartComPort.Text),
-                    EndCOMPort = int.Parse(textBoxEndComPort.Text),
-                    StartIDCode = int.Parse(textBoxStartIDCode.Text),
-                    EndIDCode = int.Parse(textBoxEndIDCode.Text),
+                    StartCOMPort = ushort.Parse(textBoxStartComPort.Text),
+                    EndCOMPort = ushort.Parse(textBoxEndComPort.Text),
+                    IDCodes = idCodes,
                     Rescan = checkBoxRescan.Checked,
                     AutoStartParsingSequenceForScan = checkBoxAutoStartParsingSequence.Checked,
                     AutoStartParsingSequenceForConfig = Settings.AutoStartParsingSequenceForConfig,
@@ -484,9 +541,17 @@ namespace AutoConfigPortScanner
             else
             {
                 e.Cancel = true;
-                errorProvider.SetError(control, message);
-                SelectAll(sender, EventArgs.Empty);
-                SetControlEnabledState(buttonScan, false);
+
+                if (control.Enabled)
+                {
+                    errorProvider.SetError(control, message);
+                    SelectAll(sender, EventArgs.Empty);
+                    SetControlEnabledState(buttonScan, false);
+                }
+                else
+                {
+                    ClearError(sender);
+                }
             }
         }
 

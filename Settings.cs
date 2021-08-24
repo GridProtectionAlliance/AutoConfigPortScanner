@@ -53,10 +53,11 @@ namespace AutoConfigPortScanner
         public const bool DefaultRtsEnable = false;
 
         // Main Settings
-        public int StartComPort { get; set; }                       // On UI
-        public int EndComPort { get; set; }                         // On UI
-        public int StartIDCode { get; set; }                        // On UI
-        public int EndIDCode { get; set; }                          // On UI
+        public ushort StartComPort { get; set; }                    // On UI
+        public ushort EndComPort { get; set; }                      // On UI
+        public ushort StartIDCode { get; set; }                     // On UI
+        public ushort EndIDCode { get; set; }                       // On UI
+        public ushort[] IDCodes { get; set; }                       // On UI
         public bool Rescan { get; set; }                            // On UI
         public bool AutoStartParsingSequenceForScan { get; set; }   // On UI
         public bool AutoStartParsingSequenceForConfig { get; set; } // Settings file / command line only
@@ -73,8 +74,8 @@ namespace AutoConfigPortScanner
         public bool RtsEnable { get; set; }
 
         public ReadOnlyCollection<string> LocalSerialPorts { get; }
-        public int MinPortNumber { get; }
-        public int MaxPortNumber { get; }
+        public ushort MinPortNumber { get; }
+        public ushort MaxPortNumber { get; }
         public int TotalSerialPorts { get; }
 
         public const ushort MinIDCode = 1;
@@ -95,10 +96,11 @@ namespace AutoConfigPortScanner
             }
 
             IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
-            StartComPort = int.Parse(mainSettings[nameof(StartComPort)]);
-            EndComPort = int.Parse(mainSettings[nameof(EndComPort)]);
-            StartIDCode = int.Parse(mainSettings[nameof(StartIDCode)]);
-            EndIDCode = int.Parse(mainSettings[nameof(EndIDCode)]);
+            StartComPort = ushort.Parse(mainSettings[nameof(StartComPort)]);
+            EndComPort = ushort.Parse(mainSettings[nameof(EndComPort)]);
+            StartIDCode = ushort.Parse(mainSettings[nameof(StartIDCode)]);
+            EndIDCode = ushort.Parse(mainSettings[nameof(EndIDCode)]);
+            IDCodes = mainSettings[nameof(IDCodes)].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(value => ushort.Parse(value.Trim())).ToArray();
             Rescan = bool.Parse(mainSettings[nameof(Rescan)]);
             AutoStartParsingSequenceForScan = bool.Parse(mainSettings[nameof(AutoStartParsingSequenceForScan)]);
             AutoStartParsingSequenceForConfig = bool.Parse(mainSettings[nameof(AutoStartParsingSequenceForConfig)]);
@@ -146,6 +148,7 @@ namespace AutoConfigPortScanner
             mainSettings[nameof(EndComPort)] = EndComPort.ToString();
             mainSettings[nameof(StartIDCode)] = StartIDCode.ToString();
             mainSettings[nameof(EndIDCode)] = EndIDCode.ToString();
+            mainSettings[nameof(IDCodes)] = string.Join(",", IDCodes);
             mainSettings[nameof(Rescan)] = Rescan.ToString();
             mainSettings[nameof(AutoStartParsingSequenceForScan)] = AutoStartParsingSequenceForScan.ToString();
             mainSettings[nameof(SourceConfig)] = SourceConfig;
@@ -158,6 +161,7 @@ namespace AutoConfigPortScanner
             builder.Add($"{MainSection}:{nameof(EndComPort)}", "0", "Defines the ending COM port number for the scan.");
             builder.Add($"{MainSection}:{nameof(StartIDCode)}", "0", "Defines the starting IEEE C37.118 ID code for the scan.");
             builder.Add($"{MainSection}:{nameof(EndIDCode)}", "0", "Defines the ending IEEE C37.118 ID code for the scan.");
+            builder.Add($"{MainSection}:{nameof(IDCodes)}", "", "Defines the comma separated list of IEEE C37.118 ID codes to scan (overrides start/end range).");
             builder.Add($"{MainSection}:{nameof(Rescan)}", DefaultRescan.ToString(), "Defines the value indicating whether already configured COM ports should be rescanned.");
             builder.Add($"{MainSection}:{nameof(AutoStartParsingSequenceForScan)}", DefaultAutoStartParsingSequenceForScan.ToString(), "Defines the value indicating whether scan should send parsing sequence to start connection.");
             builder.Add($"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}", DefaultAutoStartParsingSequenceForConfig.ToString(), "Defines the value indicating whether added device configuration should be set to send parsing sequence to start connection.");

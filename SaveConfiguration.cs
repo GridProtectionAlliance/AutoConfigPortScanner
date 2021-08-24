@@ -105,6 +105,8 @@ namespace AutoConfigPortScanner
         // Connection string parameters of system that is only listening to COM connection
         private const string ListeningConnectionString = "autoStartDataParsingSequence = false; skipDisableRealTimeData = true; disableRealTimeDataOnStop = false";
 
+        private static readonly string[] s_commonVoltageLevels = { "44", "69", "115", "138", "161", "169", "230", "345", "500", "765", "1100" };
+
         private Dictionary<string, SignalType> m_deviceSignalTypes;
         private Dictionary<string, SignalType> m_phasorSignalTypes;
 
@@ -305,6 +307,83 @@ namespace AutoConfigPortScanner
 
         private void SaveDevicePhasors(IConfigurationCell cell, Device device, TableOperations<Measurement> measurementTable, ScanParameters scanParams)
         {
+            bool phaseMatchExact(string phaseLabel, string[] phaseMatches) =>
+                phaseMatches.Any(match => phaseLabel.Equals(match, StringComparison.Ordinal));
+
+            bool phaseEndsWith(string phaseLabel, string[] phaseMatches, bool ignoreCase) =>
+                phaseMatches.Any(match => phaseLabel.EndsWith(match, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
+
+            bool phaseContains(string phaseLabel, string[] phaseMatches, bool ignoreCase) =>
+                phaseMatches.Any(match => phaseLabel.IndexOf(match, ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) > -1);
+
+            bool phaseMatchHighConfidence(string phaseLabel, string[] containsMatches, string[] endsWithMatches)
+            {
+                if (phaseEndsWith(phaseLabel, containsMatches, true))
+                    return true;
+
+                foreach (string match in containsMatches.Concat(endsWithMatches))
+                {
+                    string[] variations = { $" {match}", $"_{match}", $"-{match}", $".{match}" };
+
+                    if (phaseEndsWith(phaseLabel, variations, false))
+                        return true;
+                }
+
+                foreach (string match in containsMatches)
+                {
+                    string[] variations = { $" {match} ", $"_{match}_", $"-{match}-", $"-{match}_", $"_{match}-", $".{match}." };
+
+                    if (phaseContains(phaseLabel, variations, false))
+                        return true;
+                }
+
+                return false;
+            }
+
+            char guessPhase(char phase, string phasorLabel)
+            {
+                if (phaseMatchExact(phasorLabel, new[] { "V1PM", "I1PM" }) || phaseMatchHighConfidence(phasorLabel, new[] { "V1", "VP", "I1", "IP" }, new[] { "POS", "V1PM", "I1PM", "PS", "PSV", "PSI" }) || phaseEndsWith(phasorLabel, new[] { "+SV", "+SI", "+V", "+I" }, true))
+                    return '+';
+
+                if (phaseMatchExact(phasorLabel, new[] { "V0PM", "I0PM", "VZPM", "IZPM" }) || phaseMatchHighConfidence(phasorLabel, new[] { "V0", "I0" }, new[] { "ZERO", "ZPV", "ZPI", "VSPM", "V0PM", "I0PM", "VZPM", "IZPM", "ZS", "ZSV", "ZSI" }) || phaseEndsWith(phasorLabel, new[] { "0SV", "0SI" }, true))
+                    return '0';
+
+                if (phaseMatchExact(phasorLabel, new[] { "VAPM", "IAPM" }) || phaseMatchHighConfidence(phasorLabel, new[] { "VA", "IA" }, new[] { "APV", "API", "VAPM", "IAPM", "AV", "AI" }))
+                    return 'A';
+
+                if (phaseMatchExact(phasorLabel, new[] { "VBPM", "IBPM" }) || phaseMatchHighConfidence(phasorLabel, new[] { "VB", "IB" }, new[] { "BPV", "BPI", "VBPM", "IBPM", "BV", "BI" }))
+                    return 'B';
+
+                if (phaseMatchExact(phasorLabel, new[] { "VCPM", "ICPM" }) || phaseMatchHighConfidence(phasorLabel, new[] { "VC", "IC" }, new[] { "CPV", "CPI", "VCPM", "ICPM", "CV", "CI" }))
+                    return 'C';
+
+                if (phaseMatchExact(phasorLabel, new[] { "VNPM", "INPM" }) || phaseMatchHighConfidence(phasorLabel, new[] { "VN", "IN" }, new[] { "NEUT", "NPV", "NPI", "VNPM", "INPM", "NV", "NI" }))
+                    return 'N';
+
+                if (phaseMatchExact(phasorLabel, new[] { "V2PM", "I2PM" }) || phaseMatchHighConfidence(phasorLabel, new[] { "V2", "I2" }, new[] { "NEG", "-SV", "-SI", "V2PM", "I2PM", "NS", "NSV", "NSI" }))
+                    return '-';
+
+                return phase;
+            }
+
+            int guessBaseKV(int baseKV, string phasorLabel, string deviceLabel)
+            {
+                // Check phasor label before device
+                foreach (string voltageLevel in s_commonVoltageLevels)
+                {
+                    if (phasorLabel.IndexOf(voltageLevel, StringComparison.Ordinal) > -1)
+                        return int.Parse(voltageLevel);
+                }
+
+                foreach (string voltageLevel in s_commonVoltageLevels)
+                {
+                    if (deviceLabel.IndexOf(voltageLevel, StringComparison.Ordinal) > -1)
+                        return int.Parse(voltageLevel);
+                }
+
+                return baseKV;
+            }
+
             AdoDataConnection connection = scanParams.Connection;
             TableOperations<Phasor> phasorTable = new(connection);
 
@@ -338,14 +417,14 @@ namespace AutoConfigPortScanner
                     phasor.DeviceID = device.ID;
                     phasor.Label = phasorDefinition.Label;
                     phasor.Type = isVoltage ? 'V' : 'I';
-                    phasor.Phase = '+';     // TODO: Make a guess later
-                    phasor.BaseKV = 500;    // TODO: Make a guess later
+                    phasor.Phase = guessPhase('+', phasor.Label);
+                    phasor.BaseKV = guessBaseKV(500, phasor.Label, string.IsNullOrWhiteSpace(device.Name) ? device.Acronym ?? "" : device.Name);
                     phasor.DestinationPhasorID = null;
                     phasor.SourceIndex = phasorDefinition.Index;
 
                     phasorTable.AddNewPhasor(phasor);
-                    SavePhasorMeasurement(isVoltage ? vphmSignalType : iphmSignalType, device, phasorDefinition, phasor.SourceIndex, measurementTable, scanParams);
-                    SavePhasorMeasurement(isVoltage ? vphaSignalType : iphaSignalType, device, phasorDefinition, phasor.SourceIndex, measurementTable, scanParams);
+                    SavePhasorMeasurement(isVoltage ? vphmSignalType : iphmSignalType, device, phasorDefinition, phasor.Phase, phasor.SourceIndex, phasor.BaseKV, measurementTable, scanParams);
+                    SavePhasorMeasurement(isVoltage ? vphaSignalType : iphaSignalType, device, phasorDefinition, phasor.Phase, phasor.SourceIndex, phasor.BaseKV, measurementTable, scanParams);
                 }
             }
             else
@@ -360,19 +439,19 @@ namespace AutoConfigPortScanner
                     phasor.Type = isVoltage ? 'V' : 'I';
 
                     phasorTable.AddNewPhasor(phasor);
-                    SavePhasorMeasurement(isVoltage ? vphmSignalType : iphmSignalType, device, phasorDefinition, phasor.SourceIndex, measurementTable, scanParams);
-                    SavePhasorMeasurement(isVoltage ? vphaSignalType : iphaSignalType, device, phasorDefinition, phasor.SourceIndex, measurementTable, scanParams);
+                    SavePhasorMeasurement(isVoltage ? vphmSignalType : iphmSignalType, device, phasorDefinition, phasor.Phase, phasor.SourceIndex, phasor.BaseKV, measurementTable, scanParams);
+                    SavePhasorMeasurement(isVoltage ? vphaSignalType : iphaSignalType, device, phasorDefinition, phasor.Phase, phasor.SourceIndex, phasor.BaseKV, measurementTable, scanParams);
                 }
             }
         }
 
-        private void SavePhasorMeasurement(SignalType signalType, Device device, IPhasorDefinition phasorDefinition, int index, TableOperations<Measurement> measurementTable, ScanParameters scanParams)
+        private void SavePhasorMeasurement(SignalType signalType, Device device, IPhasorDefinition phasorDefinition, char phase, int index, int baseKV, TableOperations<Measurement> measurementTable, ScanParameters scanParams)
         {
             string signalReference = $"{device.Acronym}-{signalType.Suffix}{index}";
 
             // Query existing measurement record for specified signal reference - function will create a new blank measurement record if one does not exist
             Measurement measurement = measurementTable.QueryMeasurement(signalReference);
-            string pointTag = scanParams.CreatePhasorPointTag(device.Acronym, signalType.Acronym, phasorDefinition.Label, "+", index, 0);
+            string pointTag = scanParams.CreatePhasorPointTag(device.Acronym, signalType.Acronym, phasorDefinition.Label, phase.ToString(), index, baseKV);
 
             measurement.DeviceID = device.ID;
             measurement.PointTag = pointTag;

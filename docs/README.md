@@ -1,12 +1,18 @@
 [![PortScanner](https://gridprotectionalliance.org/images/products/productTitles75/ACPScanner.png)](https://gridprotectionalliance.github.io/PortScanner/)
 
-IEEE C37.118 Serial Port Scanner and Configuration Loader.
+## IEEE C37.118 Serial Port Scanner and Configuration Loader
 
 ![Screen Shot](ScreenShot.png)
 
+This tool is designed to operate with GPA synchrophasor products, e.g., the [openPDC](https://github.com/GridProtectionAlliance/openPDC), [SIEGate](https://github.com/GridProtectionAlliance/SIEGate) or the [openHistorian](https://github.com/GridProtectionAlliance/openHistorian).
+
+The `AutoConfigPortScanner` scans serial ports on a system testing for Phasor Measurement Unit (PMU) connections using the [IEEE C37.118 protocol](https://standards.ieee.org/standard/C37_118_1-2011.html). Once a connection has been established, the tool will scan through a specified ID code set in order to receive a configuration frame from the device. Once a device connection has been detected and a configuration frame has been received, the tool will automatically configure a new connection to the device in the host GPA synchrophasor tool.
+
+This tool is useful to automate configuration and setup of PMU devices connected serially in bulk. This can be the case when a utility has chosen a serial-based communications infrastructure where using [serial over Ethernet hubs](https://www.digi.com/products/networking/infrastructure-management/serial-connectivity/terminal-servers/connectportlts) can add hundreds of serial ports to a system.
+
 ## Usage with Command Line Parameters
 ```shell
-PortScanner [options]
+AutoConfigPortScanner [options]
 ```
 
 ### Options
@@ -23,7 +29,7 @@ PortScanner [options]
 ## Example
 * Scan serial ports using 9600 baud:
 ```shell
-PortScanner -b=9600
+AutoConfigPortScanner -b=9600
 ```
 
 ## Default Settings File

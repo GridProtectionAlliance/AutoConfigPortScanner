@@ -2,7 +2,7 @@ theme: jekyll-theme-cayman
 title: Auto-Config Port Scanner
 description: IEEE C37.118 Serial Port Scanner and Configuration Loader
 github:
-  repository_name: GridProtectionAlliance/udp2serial
+  repository_name: GridProtectionAlliance/AutoConfigPortScanner
   owner_url: https://www.gridprotectionalliance.org
   owner_name: Grid Protection Alliance
 plugins:

@@ -33,7 +33,6 @@ using GSF.Data;
 using GSF.Data.Model;
 using GSF.Diagnostics;
 using GSF.Parsing;
-using PhasorProtocolAdapters;
 
 namespace AutoConfigPortScanner
 {
@@ -56,7 +55,7 @@ namespace AutoConfigPortScanner
 
         public IEnumerable<SignalType> LoadSignalTypes(string source)
         {
-            TableOperations<SignalType> signalTypeTable = new TableOperations<SignalType>(Connection);
+            TableOperations<SignalType> signalTypeTable = new(Connection);
             return signalTypeTable.QueryRecordsWhere("Source = {0}", source);
         }
 
@@ -77,7 +76,7 @@ namespace AutoConfigPortScanner
         private static string s_companyAcronym;
         private static int s_companyID;
 
-        public int IeeeC37_118ProtocolID => s_ieeeC37_118ProtocolID != default(int) ? s_ieeeC37_118ProtocolID : s_ieeeC37_118ProtocolID = Connection.ExecuteScalar<int>("SELECT ID FROM Protocol WHERE Acronym='IeeeC37_118V1'");
+        public int IeeeC37_118ProtocolID => s_ieeeC37_118ProtocolID != default ? s_ieeeC37_118ProtocolID : s_ieeeC37_118ProtocolID = Connection.ExecuteScalar<int>("SELECT ID FROM Protocol WHERE Acronym='IeeeC37_118V1'");
 
         public string CompanyAcronym
         {
@@ -128,12 +127,10 @@ namespace AutoConfigPortScanner
         public string CreatePointTag(string companyAcronym, string deviceAcronym, string vendorAcronym, string signalTypeAcronym, string phasorLabel = null, int signalIndex = -1, char phase = '_', int baseKV = 0)
         {
             // Initialize point tag expression parser
-            if (s_pointTagExpressionParser == null)
-                s_pointTagExpressionParser = InitializePointTagExpressionParser();
+            s_pointTagExpressionParser ??= InitializePointTagExpressionParser();
 
             // Initialize signal type dictionary
-            if (s_signalTypes == null)
-                s_signalTypes = InitializeSignalTypes();
+            s_signalTypes ??= InitializeSignalTypes();
 
             Dictionary<string, string> substitutions;
 
@@ -141,17 +138,10 @@ namespace AutoConfigPortScanner
                 throw new ArgumentOutOfRangeException(nameof(signalTypeAcronym), "No database definition was found for signal type \"" + signalTypeAcronym + "\"");
 
             // Validate key acronyms
-            if ((object)companyAcronym == null)
-                companyAcronym = "";
-
-            if ((object)deviceAcronym == null)
-                deviceAcronym = "";
-
-            if ((object)vendorAcronym == null)
-                vendorAcronym = "";
-
-            if ((object)phasorLabel == null)
-                phasorLabel = "";
+            companyAcronym ??= "";
+            deviceAcronym ??= "";
+            vendorAcronym ??= "";
+            phasorLabel ??= "";
 
             companyAcronym = companyAcronym.Trim();
             deviceAcronym = deviceAcronym.Trim();
@@ -180,15 +170,11 @@ namespace AutoConfigPortScanner
 
         private Dictionary<string, DataRow> InitializeSignalTypes()
         {
-            Dictionary<string, DataRow> signalTypes;
-
             // It is expected that when a point tag is needing to be created that the database will be available
-            signalTypes = new Dictionary<string, DataRow>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, DataRow> signalTypes = new(StringComparer.OrdinalIgnoreCase);
 
             foreach (DataRow row in Connection.RetrieveData("SELECT * FROM SignalType").AsEnumerable())
-            {
                 signalTypes.AddOrUpdate(row["Acronym"].ToString(), row);
-            }
 
             return signalTypes;
         }
@@ -207,14 +193,14 @@ namespace AutoConfigPortScanner
 
                 settings.Add("PointTagNameExpression", DefaultPointTagNameExpression, "Defines the expression used to create point tag names. NOTE: if updating this setting, synchronize value in both the manager and service config files.");
 
-                pointTagExpressionParser = new TemplatedExpressionParser()
+                pointTagExpressionParser = new TemplatedExpressionParser
                 {
                     TemplatedExpression = configFile.Settings["systemSettings"]["PointTagNameExpression"].Value
                 };
             }
             catch
             {
-                pointTagExpressionParser = new TemplatedExpressionParser()
+                pointTagExpressionParser = new TemplatedExpressionParser
                 {
                     TemplatedExpression = DefaultPointTagNameExpression
                 };

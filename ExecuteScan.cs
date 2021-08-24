@@ -58,11 +58,8 @@ namespace AutoConfigPortScanner
         private void ExecuteScan(ScanParameters scanParams, CancellationToken cancellationToken)
         {
             // Create wait handles to use to wait for configuration frame
-            if (m_configurationWaitHandle is null)
-                m_configurationWaitHandle = new ManualResetEventSlim(false);
-
-            if (m_bytesReceivedWaitHandle is null)
-                m_bytesReceivedWaitHandle = new ManualResetEventSlim(false);
+            m_configurationWaitHandle ??= new ManualResetEventSlim(false);
+            m_bytesReceivedWaitHandle ??= new ManualResetEventSlim(false);
 
             // Create a new phasor protocol frame parser used to dynamically request device configuration frames
             // and return them to remote clients so that the frame can be used in system setup and configuration
@@ -103,8 +100,8 @@ namespace AutoConfigPortScanner
                     int endIDCode = scanParams.EndIDCode;
                     bool rescan = scanParams.Rescan;
                     int scannedPorts = 0;
-                    HashSet<int> configuredPorts = new HashSet<int>();
-                    HashSet<int> configuredIDCodes = new HashSet<int>();
+                    HashSet<int> configuredPorts = new();
+                    HashSet<int> configuredIDCodes = new();
 
                     ShowUpdateMessage("Reading existing configuration...");
                     Device[] devices = deviceTable.QueryRecordsWhere("IsConcentrator = 0").ToArray();
@@ -206,7 +203,7 @@ namespace AutoConfigPortScanner
 
             IConfigurationFrame configFrame = RequestDeviceConfiguration(connectionString, idCode, scanParams, cancellationToken);
             
-            return !(configFrame is ConfigurationErrorFrame) && SaveDeviceConfiguration(configFrame, comPort, idCode, scanParams);
+            return configFrame is not ConfigurationErrorFrame && SaveDeviceConfiguration(configFrame, comPort, idCode, scanParams);
         }
 
         public IConfigurationFrame RequestDeviceConfiguration(string connectionString, int idCode, ScanParameters scanParams, CancellationToken cancellationToken)
@@ -261,7 +258,7 @@ namespace AutoConfigPortScanner
                 // Terminate connection to device
                 m_frameParser.Stop();
 
-                if (m_configurationFrame == null)
+                if (m_configurationFrame is null)
                 {
                     m_configurationFrame = new ConfigurationErrorFrame();
                     ShowUpdateMessage($"{Tab2}Failed to retrieve remote device configuration.");
@@ -340,11 +337,11 @@ namespace AutoConfigPortScanner
 
         private void m_frameParser_BufferParsed(object sender, EventArgs e)
         {
-            if (!m_bytesReceivedWaitHandle.IsSet)
-            {
-                m_bytesReceivedWaitHandle.Set();
-                ShowUpdateMessage($"{Tab2}Received device response, waiting for configuration frame...");
-            }
+            if (m_bytesReceivedWaitHandle.IsSet)
+                return;
+
+            m_bytesReceivedWaitHandle.Set();
+            ShowUpdateMessage($"{Tab2}Received device response, waiting for configuration frame...");
         }
     }
 }

@@ -120,17 +120,14 @@ namespace AutoConfigPortScanner
             {
                 AdoDataConnection connection = scanParams.Connection;
                 bool autoStartParsingSequenceForConfig = scanParams.AutoStartParsingSequenceForConfig;
-                TableOperations<SignalType> signalTypeTable = new TableOperations<SignalType>(connection);
+                TableOperations<SignalType> signalTypeTable = new(connection);
                 string configConnectionMode = autoStartParsingSequenceForConfig ? ControllingConnectionString : ListeningConnectionString;
                 string connectionString = string.Format(ConnectionStringTemplate, comPort, Settings.BaudRate, Settings.Parity, Settings.StopBits, Settings.DataBits, Settings.DtrEnable, Settings.RtsEnable, configConnectionMode);
 
                 ShowUpdateMessage($"{Tab2}Saving \"{configFrame.Cells[0].StationName}\" configuration received on COM{comPort} with ID code {idCode}...");
 
-                if (m_deviceSignalTypes is null)
-                    m_deviceSignalTypes = signalTypeTable.LoadSignalTypes("PMU").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
-
-                if (m_phasorSignalTypes is null)
-                    m_phasorSignalTypes = signalTypeTable.LoadSignalTypes("Phasor").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
+                m_deviceSignalTypes ??= signalTypeTable.LoadSignalTypes("PMU").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
+                m_phasorSignalTypes ??= signalTypeTable.LoadSignalTypes("Phasor").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
 
                 SaveDeviceConnection(configFrame, connectionString, comPort, idCode, scanParams);
                 
@@ -224,7 +221,7 @@ namespace AutoConfigPortScanner
         private void SaveDeviceRecords(IConfigurationFrame configFrame, Device device, ScanParameters scanParams)
         {
             AdoDataConnection connection = scanParams.Connection;
-            TableOperations<Measurement> measurementTable = new TableOperations<Measurement>(connection);
+            TableOperations<Measurement> measurementTable = new(connection);
             IConfigurationCell cell = configFrame.Cells[0];
 
             // Add frequency
@@ -309,7 +306,7 @@ namespace AutoConfigPortScanner
         private void SaveDevicePhasors(IConfigurationCell cell, Device device, TableOperations<Measurement> measurementTable, ScanParameters scanParams)
         {
             AdoDataConnection connection = scanParams.Connection;
-            TableOperations<Phasor> phasorTable = new TableOperations<Phasor>(connection);
+            TableOperations<Phasor> phasorTable = new(connection);
 
             // Get phasor signal types
             SignalType iphmSignalType = m_phasorSignalTypes["IPHM"];
@@ -324,14 +321,8 @@ namespace AutoConfigPortScanner
             if (!dropAndAdd)
             {
                 // Also do add operation if phasor source index records are not sequential
-                for (int i = 0; i < phasors.Length; i++)
-                {
-                    if (phasors[i].SourceIndex != i + 1)
-                    {
-                        dropAndAdd = true;
-                        break;
-                    }
-                }
+                if (phasors.Where((phasor, index) => phasor.SourceIndex != index + 1).Any())
+                    dropAndAdd = true;
             }
 
             if (dropAndAdd)

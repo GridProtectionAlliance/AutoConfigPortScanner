@@ -80,15 +80,13 @@ namespace AutoConfigPortScanner
         public const ushort MinIDCode = 1;
         public const ushort MaxIDCode = ushort.MaxValue;
 
-        private readonly IConfiguration m_configuration;
-
         public Settings(IConfiguration configuration)
         {
-            m_configuration = configuration;
+            Configuration = configuration;
 
             LocalSerialPorts = Array.AsReadOnly(SerialPort.GetPortNames());
             TotalSerialPorts = LocalSerialPorts.Count;
-            SortedSet<ushort> portNumbers = new SortedSet<ushort>(LocalSerialPorts.Select(portName => ushort.Parse(portName.Substring(3))));
+            SortedSet<ushort> portNumbers = new(LocalSerialPorts.Select(portName => ushort.Parse(portName.Substring(3))));
 
             if (portNumbers.Count > 0)
             {
@@ -96,7 +94,7 @@ namespace AutoConfigPortScanner
                 MaxPortNumber = portNumbers.Last();
             }
 
-            IConfigurationSection mainSettings = m_configuration.GetSection(MainSection);
+            IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
             StartComPort = int.Parse(mainSettings[nameof(StartComPort)]);
             EndComPort = int.Parse(mainSettings[nameof(EndComPort)]);
             StartIDCode = int.Parse(mainSettings[nameof(StartIDCode)]);
@@ -120,30 +118,30 @@ namespace AutoConfigPortScanner
             if (EndIDCode == 0)
                 EndIDCode = MaxIDCode;
 
-            IConfigurationSection serialSettings = m_configuration.GetSection(SerialSection);
+            IConfigurationSection serialSettings = Configuration.GetSection(SerialSection);
             
             BaudRate = int.Parse(serialSettings[nameof(BaudRate)]);
             DataBits = int.Parse(serialSettings[nameof(DataBits)]);
             
-            if (Enum.TryParse<Parity>(serialSettings[nameof(Parity)], out Parity parity))
+            if (Enum.TryParse(serialSettings[nameof(Parity)], out Parity parity))
                 Parity = parity;
             
-            if (Enum.TryParse<StopBits>(serialSettings[nameof(StopBits)], out StopBits stopBits))
+            if (Enum.TryParse(serialSettings[nameof(StopBits)], out StopBits stopBits))
                 StopBits = stopBits;
             
             DtrEnable = bool.Parse(serialSettings[nameof(DtrEnable)]);
             RtsEnable = bool.Parse(serialSettings[nameof(RtsEnable)]);
         }
 
-        public IConfiguration Configuration => m_configuration;
+        public IConfiguration Configuration { get; }
 
         public void Save()
         {
-            if (m_configuration is null)
+            if (Configuration is null)
                 return;
 
             // Only need serialize settings that can be changed on UI:
-            IConfigurationSection mainSettings = m_configuration.GetSection(MainSection);
+            IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
             mainSettings[nameof(StartComPort)] = StartComPort.ToString();
             mainSettings[nameof(EndComPort)] = EndComPort.ToString();
             mainSettings[nameof(StartIDCode)] = StartIDCode.ToString();
@@ -177,7 +175,7 @@ namespace AutoConfigPortScanner
         }
 
         // Command line overrides
-        public static Dictionary<string, string> SwitchMappings => new Dictionary<string, string>
+        public static Dictionary<string, string> SwitchMappings => new()
         {
             [$"--{nameof(BaudRate)}"] = $"{SerialSection}:{nameof(BaudRate)}",
             [$"--{nameof(DataBits)}"] = $"{SerialSection}:{nameof(DataBits)}",

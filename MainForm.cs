@@ -72,7 +72,7 @@ namespace AutoConfigPortScanner
         {
             try
             {
-                StringBuilder message = new StringBuilder();
+                StringBuilder message = new();
 
                 message.AppendLine($"System COM Port Range: COM{Settings.MinPortNumber} to COM{Settings.MaxPortNumber}");
                 message.AppendLine();
@@ -177,7 +177,7 @@ namespace AutoConfigPortScanner
                 SetError(sender, e, "End COM port must be greater then start COM port");
         }
 
-        private void textBoxEndComPort_Validated(object sender, System.EventArgs e)
+        private void textBoxEndComPort_Validated(object sender, EventArgs e)
         {
             Settings.EndComPort = int.Parse(textBoxEndComPort.Text.Trim());
             ClearError(sender);
@@ -225,9 +225,7 @@ namespace AutoConfigPortScanner
             Guid nodeID;
             string connectionString, dataProviderString;
 
-            if (m_scanExecutionComplete is null)
-                m_scanExecutionComplete = new ManualResetEventSlim(false);
-
+            m_scanExecutionComplete ??= new ManualResetEventSlim(false);
             m_scanExecutionComplete.Reset();
 
             try
@@ -279,8 +277,8 @@ namespace AutoConfigPortScanner
 
             try
             {
-                AdoDataConnection connection = new AdoDataConnection(connectionString, dataProviderString);
-                StringBuilder message = new StringBuilder();
+                AdoDataConnection connection = new(connectionString, dataProviderString);
+                StringBuilder message = new();
 
                 message.AppendLine();
                 message.AppendLine($"Opened database configured in \"{Path.GetFileName(configFile)}\":");
@@ -344,28 +342,27 @@ namespace AutoConfigPortScanner
                     SetControlEnabledState(buttonImport, false);
                     m_cancellationTokenSource = new CancellationTokenSource();
 
-                    Dictionary<int, int> comPortIDCodeMap = new Dictionary<int, int>();
+                    Dictionary<int, int> comPortIDCodeMap = new();
 
                     try
                     {
-                        using (TextFieldParser parser = new TextFieldParser(csvFile))
+                        using TextFieldParser parser = new(csvFile);
+
+                        parser.TextFieldType = FieldType.Delimited;
+                        parser.SetDelimiters(",");
+
+                        while (!parser.EndOfData)
                         {
-                            parser.TextFieldType = FieldType.Delimited;
-                            parser.SetDelimiters(",");
+                            string[] fields = parser.ReadFields();
 
-                            while (!parser.EndOfData)
-                            {
-                                string[] fields = parser.ReadFields();
+                            if (!(fields?.Length > 1))
+                                continue;
 
-                                if (!(fields?.Length > 1))
-                                    continue;
+                            if (fields[0].StartsWith("COM", StringComparison.OrdinalIgnoreCase) && fields.Length > 3)
+                                fields[0] = fields[0].Substring(3);
 
-                                if (fields[0].StartsWith("COM", StringComparison.OrdinalIgnoreCase) && fields.Length > 3)
-                                    fields[0] = fields[0].Substring(3);
-
-                                if (ushort.TryParse(fields[0], out ushort comPort) && ushort.TryParse(fields[1], out ushort idCode))
-                                    comPortIDCodeMap[comPort] = idCode;
-                            }
+                            if (ushort.TryParse(fields[0], out ushort comPort) && ushort.TryParse(fields[1], out ushort idCode))
+                                comPortIDCodeMap[comPort] = idCode;
                         }
                     }
                     catch (Exception ex)
@@ -477,7 +474,7 @@ namespace AutoConfigPortScanner
 
         private void SetError(object sender, CancelEventArgs e, string message)
         {
-            if (m_formClosing || sender is null || !(sender is Control control))
+            if (m_formClosing || sender is not Control control)
                 return;
 
             if (InvokeRequired)
@@ -495,7 +492,7 @@ namespace AutoConfigPortScanner
 
         private void ClearError(object sender)
         {
-            if (m_formClosing || sender is null || !(sender is Control control))
+            if (m_formClosing || sender is not Control control)
                 return;
 
             if (InvokeRequired)
@@ -511,7 +508,7 @@ namespace AutoConfigPortScanner
 
         private void SelectAll(object sender, EventArgs eventArgs)
         {
-            if (!m_formLoaded || sender is null || !(sender is TextBox textBox))
+            if (!m_formLoaded || sender is not TextBox textBox)
                 return;
 
             textBox.SelectAll();

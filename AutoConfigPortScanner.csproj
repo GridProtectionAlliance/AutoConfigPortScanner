@@ -27,12 +27,12 @@
     <PackageReference Include="ExpressionEvaluator" Version="2.0.4.0" />
     <PackageReference Include="Gemstone.Common" Version="1.0.61" />
     <PackageReference Include="Gemstone.Configuration" Version="1.0.61" />
-    <PackageReference Include="GSF.Communication" Version="2.3.360-beta" />
-    <PackageReference Include="GSF.Core" Version="2.3.360-beta" />
-    <PackageReference Include="GSF.PhasorProtocols" Version="2.3.360-beta" />
-    <PackageReference Include="GSF.Security" Version="2.3.360-beta" />
-    <PackageReference Include="GSF.ServiceProcess" Version="2.3.360-beta" />
-    <PackageReference Include="GSF.TimeSeries" Version="2.3.360-beta" />
+    <PackageReference Include="GSF.Communication" Version="2.3.482-beta" />
+    <PackageReference Include="GSF.Core" Version="2.3.482-beta" />
+    <PackageReference Include="GSF.PhasorProtocols" Version="2.3.482-beta" />
+    <PackageReference Include="GSF.Security" Version="2.3.482-beta" />
+    <PackageReference Include="GSF.ServiceProcess" Version="2.3.482-beta" />
+    <PackageReference Include="GSF.TimeSeries" Version="2.3.482-beta" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.5" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="3.1.9" />

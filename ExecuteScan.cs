@@ -98,7 +98,7 @@ namespace AutoConfigPortScanner
                     ushort endCOMPort = scanParams.EndCOMPort;
                     ushort[] idCodes = scanParams.IDCodes;
                     bool rescan = scanParams.Rescan;
-                    int scannedPorts = 0;
+                    int scannedIDCodes = 0;
                     HashSet<ushort> configuredPorts = new();
                     HashSet<ushort> configuredIDCodes = new();
 
@@ -134,30 +134,30 @@ namespace AutoConfigPortScanner
                     // Only control progress bar for manual (non-import) scans
                     if (buttonImport.Enabled)
                     {
-                        SetProgressBarMinMax(startCOMPort - 1, endCOMPort);
+                        SetProgressBarMinMax(0, idCodes.Length - 1);
                         UpdateProgressBar(0);
                     }
 
-                    for (ushort comPort = startCOMPort; comPort <= endCOMPort; comPort++)
+                    foreach (ushort idCode in idCodes)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
-                        
-                        if (configuredPorts.Contains(comPort))
-                        {
-                            ShowUpdateMessage($"Skipping scan for already configured COM{comPort}...");
-                            continue;
-                        }
-                        
-                        ShowUpdateMessage($"Starting scan for COM{comPort}...");
 
-                        foreach (ushort idCode in idCodes)
+                        if (configuredIDCodes.Contains(idCode))
+                            continue;
+
+                        ShowUpdateMessage($"Starting scan for ID code {idCode}...");
+
+                        for (ushort comPort = startCOMPort; comPort <= endCOMPort; comPort++)
                         {
                             cancellationToken.ThrowIfCancellationRequested();
 
-                            if (configuredIDCodes.Contains(idCode))
+                            if (configuredPorts.Contains(comPort))
+                            {
+                                ShowUpdateMessage($"Skipping scan for already configured COM{comPort}...");
                                 continue;
+                            }
 
-                            if (!ScanPortWithIDCode(comPort, idCode, scanParams, cancellationToken))
+                            if (!ScanPortWithIDCode(comPort, idCode, scanParams, configuredPorts, cancellationToken))
                                 continue;
 
                             // Shorten ID code scan list as new devices are detected
@@ -165,15 +165,15 @@ namespace AutoConfigPortScanner
                             break;
                         }
 
-                        ShowUpdateMessage($"Completed scan for COM{comPort}.{Environment.NewLine}");
-                        scannedPorts++;
+                        ShowUpdateMessage($"Completed scan for ID code {idCode}.{Environment.NewLine}");
+                        scannedIDCodes++;
 
                         // Only control progress bar for manual (non-import) scans
                         if (buttonImport.Enabled)
-                            UpdateProgressBar(comPort);
+                            UpdateProgressBar(scannedIDCodes);
                     }
 
-                    ShowUpdateMessage($"Completed scan for {scannedPorts:N0} COM ports in {(DateTime.UtcNow.Ticks - startTime).ToElapsedTimeString(3)}");
+                    ShowUpdateMessage($"Completed scan for {scannedIDCodes:N0} ID codes in {(DateTime.UtcNow.Ticks - startTime).ToElapsedTimeString(3)}");
                 }
                 catch (OperationCanceledException)
                 {
@@ -192,7 +192,7 @@ namespace AutoConfigPortScanner
             cancellationToken);
         }
 
-        private bool ScanPortWithIDCode(int comPort, int idCode, ScanParameters scanParams, CancellationToken cancellationToken)
+        private bool ScanPortWithIDCode(ushort comPort, ushort idCode, ScanParameters scanParams, HashSet<ushort> configuredPorts, CancellationToken cancellationToken)
         {
             bool autoStartParsingSequenceForScan = scanParams.AutoStartParsingSequenceForScan;
             string scanConnectionMode = autoStartParsingSequenceForScan ? ActiveScanConnectionString : PassiveScanConnectionString;
@@ -202,7 +202,7 @@ namespace AutoConfigPortScanner
 
             IConfigurationFrame configFrame = RequestDeviceConfiguration(connectionString, idCode, scanParams, cancellationToken);
             
-            return configFrame is not ConfigurationErrorFrame && SaveDeviceConfiguration(configFrame, comPort, idCode, scanParams);
+            return configFrame is not ConfigurationErrorFrame && SaveDeviceConfiguration(configFrame, comPort, idCode, scanParams, configuredPorts);
         }
 
         public IConfigurationFrame RequestDeviceConfiguration(string connectionString, int idCode, ScanParameters scanParams, CancellationToken cancellationToken)
@@ -298,7 +298,9 @@ namespace AutoConfigPortScanner
             {
                 ShowUpdateMessage($"{Tab2}Serial port opened, requesting configuration frame...");
 
-                // Send manual request for configuration frame
+                m_frameParser.SendDeviceCommand(DeviceCommand.DisableRealTimeData);
+                Thread.Sleep(1000);
+
                 const DeviceCommand command = DeviceCommand.SendConfigurationFrame2;
                 m_frameParser.SendDeviceCommand(command);
                 ShowUpdateMessage($"{Tab2}Sent device command \"{command}\"...");

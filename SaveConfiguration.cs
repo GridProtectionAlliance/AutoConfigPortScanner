@@ -39,7 +39,7 @@ namespace AutoConfigPortScanner
 {
     public static class TableOperationExtensions
     {
-        public static Device FindDeviceByComPort(this Device[] devices, int comPort)
+        public static Device FindDeviceByComPort(this Device[] devices, ushort comPort)
         {
             string portName = $"COM{comPort}";
 
@@ -116,7 +116,7 @@ namespace AutoConfigPortScanner
             return Regex.Replace(acronym, @"[^A-Z0-9\-!_\.@#\$]", "", RegexOptions.IgnoreCase);
         }
 
-        private bool SaveDeviceConfiguration(IConfigurationFrame configFrame, int comPort, int idCode, ScanParameters scanParams)
+        private bool SaveDeviceConfiguration(IConfigurationFrame configFrame, ushort comPort, ushort idCode, ScanParameters scanParams, HashSet<ushort> configuredPorts)
         {
             try
             {
@@ -132,7 +132,8 @@ namespace AutoConfigPortScanner
                 m_phasorSignalTypes ??= signalTypeTable.LoadSignalTypes("Phasor").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
 
                 SaveDeviceConnection(configFrame, connectionString, comPort, idCode, scanParams);
-                
+                configuredPorts.Add(comPort);
+
                 return true;
             }
             catch (Exception ex)
@@ -144,7 +145,7 @@ namespace AutoConfigPortScanner
             }
         }
 
-        private void SaveDeviceConnection(IConfigurationFrame configFrame, string connectionString, int comPort, int idCode, ScanParameters scanParams)
+        private void SaveDeviceConnection(IConfigurationFrame configFrame, string connectionString, ushort comPort, ushort idCode, ScanParameters scanParams)
         {
             TableOperations<Device> deviceTable = scanParams.DeviceTable;
             Guid nodeID = scanParams.NodeID;

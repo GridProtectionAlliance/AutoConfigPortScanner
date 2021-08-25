@@ -55,6 +55,7 @@ namespace AutoConfigPortScanner
 
         // Main Settings
         public bool AutoScan { get; set; }                          // Settings file / command line only
+        public bool AutoRemoveIDs { get; set; }                     // Settings file / command line only
         public ushort StartComPort { get; set; }                    // On UI
         public ushort EndComPort { get; set; }                      // On UI
         public ushort[] ComPorts { get; set; }                      // On UI
@@ -102,6 +103,7 @@ namespace AutoConfigPortScanner
             IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
 
             AutoScan = bool.Parse(mainSettings[nameof(AutoScan)]);
+            AutoRemoveIDs = bool.Parse(mainSettings[nameof(AutoRemoveIDs)]);
             StartComPort = ushort.Parse(mainSettings[nameof(StartComPort)]);
             EndComPort = ushort.Parse(mainSettings[nameof(EndComPort)]);
             ComPorts = ParseUniqueUInt16Values(mainSettings[nameof(ComPorts)]);
@@ -166,6 +168,7 @@ namespace AutoConfigPortScanner
             IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
 
             mainSettings[nameof(AutoScan)] = AutoScan.ToString();
+            mainSettings[nameof(AutoRemoveIDs)] = AutoRemoveIDs.ToString();
             mainSettings[nameof(StartComPort)] = StartComPort.ToString();
             mainSettings[nameof(EndComPort)] = EndComPort.ToString();
             mainSettings[nameof(ComPorts)] = string.Join(",", ComPorts);
@@ -181,6 +184,7 @@ namespace AutoConfigPortScanner
         {
             // Main configuration settings
             builder.Add($"{MainSection}:{nameof(AutoScan)}", "false", "Defines the value indicating if tool should start scan automatically on start.");
+            builder.Add($"{MainSection}:{nameof(AutoRemoveIDs)}", "false", "Defines the value indicating if tool should auto-remove ID codes from list as they are completed.");
             builder.Add($"{MainSection}:{nameof(StartComPort)}", "0", "Defines the starting COM port number for the scan.");
             builder.Add($"{MainSection}:{nameof(EndComPort)}", "0", "Defines the ending COM port number for the scan.");
             builder.Add($"{MainSection}:{nameof(ComPorts)}", "", "Defines the comma separated list of serial COM ports to scan (overrides start/end range).");
@@ -214,6 +218,9 @@ namespace AutoConfigPortScanner
             [$"--{nameof(DtrEnable)}"] = $"{SerialSection}:{nameof(DtrEnable)}",
             [$"--{nameof(RtsEnable)}"] = $"{SerialSection}:{nameof(RtsEnable)}",
             [$"--{nameof(AutoScan)}"] = $"{MainSection}:{nameof(AutoScan)}",
+            [$"--{nameof(AutoRemoveIDs)}"] = $"{MainSection}:{nameof(AutoRemoveIDs)}",
+            [$"--{nameof(StartComPort)}"] = $"{MainSection}:{nameof(StartComPort)}",
+            [$"--{nameof(EndComPort)}"] = $"{MainSection}:{nameof(EndComPort)}",
             ["--AutoStartParsingSequence"] = $"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}",
             [$"--{nameof(ResponseTimeout)}"] = $"{MainSection}:{nameof(ResponseTimeout)}",
             [$"--{nameof(ConfigFrameTimeout)}"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}",
@@ -225,6 +232,7 @@ namespace AutoConfigPortScanner
             ["-t"] = $"{SerialSection}:{nameof(DtrEnable)}",
             ["-r"] = $"{SerialSection}:{nameof(RtsEnable)}",
             ["-x"] = $"{MainSection}:{nameof(AutoScan)}",
+            ["-i"] = $"{MainSection}:{nameof(AutoRemoveIDs)}",
             ["-a"] = $"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}",
             ["-n"] = $"{MainSection}:{nameof(ResponseTimeout)}",
             ["-c"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}",

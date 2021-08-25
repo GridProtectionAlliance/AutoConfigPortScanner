@@ -225,7 +225,7 @@ namespace AutoConfigPortScanner
                         try
                         {
                             // In case app needs to restart do not rescan existing ID codes
-                            if (Settings.AutoScan && idCodeSettings.Remove(idCode))
+                            if (Settings.AutoRemoveIDs && idCodeSettings.Remove(idCode))
                             {
                                 Settings.IDCodes = idCodeSettings.ToArray();
                                 Settings.Save();

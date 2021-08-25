@@ -114,7 +114,7 @@ namespace AutoConfigPortScanner
 
                 m_formLoaded = true;
 
-                if (Settings.AutoScan && Settings.IDCodes.Length > 0)
+                if (Settings.AutoScan)
                     buttonScan_Click(sender, e);
             }
             catch (Exception ex)
@@ -148,7 +148,7 @@ namespace AutoConfigPortScanner
                 if (ushort.TryParse(textBoxEndIDCode.Text, out ushort endIDCode))
                     Settings.EndIDCode = endIDCode;
 
-                if (!Settings.AutoScan)
+                if (!Settings.AutoRemoveIDs)
                     Settings.IDCodes = Settings.ParseUniqueUInt16Values(textBoxIDCodes.Text);
 
                 Settings.Rescan = checkBoxRescan.Checked;

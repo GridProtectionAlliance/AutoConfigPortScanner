@@ -43,6 +43,7 @@ namespace AutoConfigPortScanner
         public const string DefaultSourceConfig = @"C:\Program Files\SIEGate\SIEGate.exe.config";
         public const int DefaultResponseTimeout = 2000;
         public const int DefaultConfigFrameTimeout = 60000;
+        public const int DefaultDisableDataDelay = 1000;
 
         // Defaults for Serial Settings
         public const int DefaultBaudRate = 57600;
@@ -55,6 +56,7 @@ namespace AutoConfigPortScanner
         // Main Settings
         public ushort StartComPort { get; set; }                    // On UI
         public ushort EndComPort { get; set; }                      // On UI
+        public ushort[] ComPorts { get; set; }                      // On UI
         public ushort StartIDCode { get; set; }                     // On UI
         public ushort EndIDCode { get; set; }                       // On UI
         public ushort[] IDCodes { get; set; }                       // On UI
@@ -64,6 +66,7 @@ namespace AutoConfigPortScanner
         public string SourceConfig { get; set; }                    // On UI
         public int ResponseTimeout { get; set; }                    // Settings file / command line only
         public int ConfigFrameTimeout { get; set; }                 // Settings file / command line only
+        public int DisableDataDelay { get; set; }                   // Settings file / command line only
 
         // Serial Settings
         public int BaudRate { get; set; }
@@ -98,15 +101,17 @@ namespace AutoConfigPortScanner
             IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
             StartComPort = ushort.Parse(mainSettings[nameof(StartComPort)]);
             EndComPort = ushort.Parse(mainSettings[nameof(EndComPort)]);
+            ComPorts = ParseUniqueUInt16Values(mainSettings[nameof(ComPorts)]);
             StartIDCode = ushort.Parse(mainSettings[nameof(StartIDCode)]);
             EndIDCode = ushort.Parse(mainSettings[nameof(EndIDCode)]);
-            IDCodes = mainSettings[nameof(IDCodes)].Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(value => ushort.Parse(value.Trim())).ToArray();
+            IDCodes = ParseUniqueUInt16Values(mainSettings[nameof(IDCodes)]);
             Rescan = bool.Parse(mainSettings[nameof(Rescan)]);
             AutoStartParsingSequenceForScan = bool.Parse(mainSettings[nameof(AutoStartParsingSequenceForScan)]);
             AutoStartParsingSequenceForConfig = bool.Parse(mainSettings[nameof(AutoStartParsingSequenceForConfig)]);
             SourceConfig = mainSettings[nameof(SourceConfig)];
             ResponseTimeout = int.Parse(mainSettings[nameof(ResponseTimeout)]);
             ConfigFrameTimeout = int.Parse(mainSettings[nameof(ConfigFrameTimeout)]);
+            DisableDataDelay = int.Parse(mainSettings[nameof(DisableDataDelay)]);
 
             if (StartComPort == 0)
                 StartComPort = MinPortNumber;
@@ -133,6 +138,18 @@ namespace AutoConfigPortScanner
             
             DtrEnable = bool.Parse(serialSettings[nameof(DtrEnable)]);
             RtsEnable = bool.Parse(serialSettings[nameof(RtsEnable)]);
+
+            if (ResponseTimeout <= 0)
+                ResponseTimeout = DefaultResponseTimeout;
+
+            if (ConfigFrameTimeout <= 0)
+                ConfigFrameTimeout = DefaultConfigFrameTimeout;
+
+            if (DisableDataDelay <= 0)
+                DisableDataDelay = DefaultDisableDataDelay;
+
+            if (ResponseTimeout < DisableDataDelay)
+                ResponseTimeout = DisableDataDelay + 500;
         }
 
         public IConfiguration Configuration { get; }
@@ -146,6 +163,7 @@ namespace AutoConfigPortScanner
             IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
             mainSettings[nameof(StartComPort)] = StartComPort.ToString();
             mainSettings[nameof(EndComPort)] = EndComPort.ToString();
+            mainSettings[nameof(ComPorts)] = string.Join(",", ComPorts);
             mainSettings[nameof(StartIDCode)] = StartIDCode.ToString();
             mainSettings[nameof(EndIDCode)] = EndIDCode.ToString();
             mainSettings[nameof(IDCodes)] = string.Join(",", IDCodes);
@@ -159,6 +177,7 @@ namespace AutoConfigPortScanner
             // Main configuration settings
             builder.Add($"{MainSection}:{nameof(StartComPort)}", "0", "Defines the starting COM port number for the scan.");
             builder.Add($"{MainSection}:{nameof(EndComPort)}", "0", "Defines the ending COM port number for the scan.");
+            builder.Add($"{MainSection}:{nameof(ComPorts)}", "", "Defines the comma separated list of serial COM ports to scan (overrides start/end range).");
             builder.Add($"{MainSection}:{nameof(StartIDCode)}", "0", "Defines the starting IEEE C37.118 ID code for the scan.");
             builder.Add($"{MainSection}:{nameof(EndIDCode)}", "0", "Defines the ending IEEE C37.118 ID code for the scan.");
             builder.Add($"{MainSection}:{nameof(IDCodes)}", "", "Defines the comma separated list of IEEE C37.118 ID codes to scan (overrides start/end range).");
@@ -168,6 +187,7 @@ namespace AutoConfigPortScanner
             builder.Add($"{MainSection}:{nameof(SourceConfig)}", DefaultSourceConfig, "Defines the source configuration file for host application that contains database connection info.");
             builder.Add($"{MainSection}:{nameof(ResponseTimeout)}", DefaultResponseTimeout.ToString(), "Defines the maximum time, in milliseconds, to wait for a serial response.");
             builder.Add($"{MainSection}:{nameof(ConfigFrameTimeout)}", DefaultConfigFrameTimeout.ToString(), "Defines the maximum time, in milliseconds, to wait for a configuration frame.");
+            builder.Add($"{MainSection}:{nameof(DisableDataDelay)}", DefaultDisableDataDelay.ToString(), "Defined the delay time, in milliseconds, to wait after sending the DisableRealTimeData command to a device.");
 
             // Serial configuration settings
             builder.Add($"{SerialSection}:{nameof(BaudRate)}", DefaultBaudRate.ToString(), "Defines the serial baud rate. Standard values: 110, 300, 600, 1200, 2400, 4800, 9600, 14400, 19200, 38400, 57600, 115200, 128000, or 256000.");
@@ -187,6 +207,10 @@ namespace AutoConfigPortScanner
             [$"--{nameof(StopBits)}"] = $"{SerialSection}:{nameof(StopBits)}",
             [$"--{nameof(DtrEnable)}"] = $"{SerialSection}:{nameof(DtrEnable)}",
             [$"--{nameof(RtsEnable)}"] = $"{SerialSection}:{nameof(RtsEnable)}",
+            ["--AutoStartParsingSequence"] = $"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}",
+            [$"--{nameof(ResponseTimeout)}"] = $"{MainSection}:{nameof(ResponseTimeout)}",
+            [$"--{nameof(ConfigFrameTimeout)}"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}",
+            [$"--{nameof(DisableDataDelay)}"] = $"{MainSection}:{nameof(DisableDataDelay)}",
             ["-b"] = $"{SerialSection}:{nameof(BaudRate)}",
             ["-d"] = $"{SerialSection}:{nameof(DataBits)}",
             ["-p"] = $"{SerialSection}:{nameof(Parity)}",
@@ -195,7 +219,16 @@ namespace AutoConfigPortScanner
             ["-r"] = $"{SerialSection}:{nameof(RtsEnable)}",
             ["-a"] = $"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}",
             ["-n"] = $"{MainSection}:{nameof(ResponseTimeout)}",
-            ["-c"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}"
+            ["-c"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}",
+            ["-w"] = $"{MainSection}:{nameof(DisableDataDelay)}"
         };
+
+        public static ushort[] ParseUniqueUInt16Values(string itemList) =>
+            itemList.Split(new[] { ",", ";", "\r\n", "\n", "\t", " " }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(item => (success: ushort.TryParse(item.Trim(), out ushort value), value))
+                .Where(result => result.success)
+                .Select(result => result.value)
+                .Distinct()
+                .ToArray();
     }
 }

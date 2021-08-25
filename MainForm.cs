@@ -54,6 +54,8 @@ namespace AutoConfigPortScanner
         private ManualResetEventSlim m_scanExecutionComplete;
         private readonly LogPublisher m_log;
         private readonly bool m_debugBuild;
+        private string m_lastTimeRemaining = "Calculating...";
+        private int m_lastDiscoveredDevices;
 
         public Settings Settings { get; set; }
 
@@ -68,6 +70,8 @@ namespace AutoConfigPortScanner
 
         #if DEBUG
             m_debugBuild = true;
+        #else
+            m_debugBuild = false;
         #endif
         }
 
@@ -90,15 +94,17 @@ namespace AutoConfigPortScanner
                 message.AppendLine($"    RTS Enabled: {Settings.RtsEnable}");
                 message.AppendLine();
                 message.AppendLine("Loaded non-UI Port Scan Settings:");
-                message.AppendLine($"    Config ASPS: {Settings.AutoStartParsingSequenceForConfig} -> set to add \"{(Settings.AutoStartParsingSequenceForConfig ? "CONTROLLING" : "LISTENING")}\" connection for device configurations");
-                message.AppendLine($"    COM Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ResponseTimeout).TotalSeconds, 3)}");
-                message.AppendLine($" Config Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ConfigFrameTimeout).TotalSeconds, 3)}");
+                message.AppendLine($"      Auto-Start Parsing: {Settings.AutoStartParsingSequenceForConfig} -> set to add \"{(Settings.AutoStartParsingSequenceForConfig ? "CONTROLLING" : "LISTENING")}\" connection for device configurations");
+                message.AppendLine($"             COM Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ResponseTimeout).TotalSeconds, 3)}");
+                message.AppendLine($"          Config Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ConfigFrameTimeout).TotalSeconds, 3)}");
+                message.AppendLine($"      Disable Data Delay: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.DisableDataDelay).TotalSeconds, 3)}");
 
                 ShowUpdateMessage(message.ToString());
 
                 // Restore UI settings
                 textBoxStartComPort.Text = Settings.StartComPort.ToString();
                 textBoxEndComPort.Text = Settings.EndComPort.ToString();
+                textBoxComPorts.Text = string.Join(", ", Settings.ComPorts);
                 textBoxStartIDCode.Text = Settings.StartIDCode.ToString();
                 textBoxEndIDCode.Text = Settings.EndIDCode.ToString();
                 textBoxIDCodes.Text = string.Join(", ", Settings.IDCodes);
@@ -131,14 +137,15 @@ namespace AutoConfigPortScanner
                 if (ushort.TryParse(textBoxEndComPort.Text, out ushort endComPort))
                     Settings.EndComPort = endComPort;
 
+                Settings.ComPorts = Settings.ParseUniqueUInt16Values(textBoxComPorts.Text);
+
                 if (ushort.TryParse(textBoxStartIDCode.Text, out ushort startIDCode))
                     Settings.StartIDCode = startIDCode;
 
                 if (ushort.TryParse(textBoxEndIDCode.Text, out ushort endIDCode))
                     Settings.EndIDCode = endIDCode;
 
-                Settings.IDCodes = string.IsNullOrWhiteSpace(textBoxIDCodes.Text) ? Array.Empty<ushort>() : 
-                    textBoxIDCodes.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(value => ushort.Parse(value.Trim())).ToArray();
+                Settings.IDCodes = Settings.ParseUniqueUInt16Values(textBoxIDCodes.Text);
 
                 Settings.Rescan = checkBoxRescan.Checked;
                 Settings.AutoStartParsingSequenceForScan = checkBoxAutoStartParsingSequence.Checked;
@@ -192,6 +199,41 @@ namespace AutoConfigPortScanner
             ClearError(sender);
         }
 
+        private void textBoxComPorts_TextChanged(object sender, EventArgs e)
+        {
+            textBoxStartComPort.Enabled = textBoxEndComPort.Enabled = string.IsNullOrWhiteSpace(textBoxComPorts.Text);
+        }
+
+        private void textBoxComPorts_Validating(object sender, CancelEventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(textBoxComPorts.Text) && Settings.ParseUniqueUInt16Values(textBoxComPorts.Text).Length == 0)
+                SetError(sender, e, "Invalid COM port list");
+        }
+
+        private void textBoxComPorts_Validated(object sender, EventArgs e)
+        {
+            Settings.ComPorts = Settings.ParseUniqueUInt16Values(textBoxComPorts.Text);
+            textBoxComPorts.Text = string.Join(", ", Settings.ComPorts);
+            ClearError(sender);
+        }
+
+        private void buttonBrowseComPorts_Click(object sender, EventArgs e)
+        {
+            if (openFileDialogSelectComPorts.ShowDialog(this) != DialogResult.OK)
+                return;
+
+            try
+            {
+                ushort[] comPorts = Settings.ParseUniqueUInt16Values(File.ReadAllText(openFileDialogSelectComPorts.FileName));
+                textBoxComPorts.Text = string.Join(", ", comPorts);
+            }
+            catch (Exception ex)
+            {
+                ShowUpdateMessage($"ERROR: Failed while attempting to load COM ports from  \"{Path.GetFileName(openFileDialogSelectComPorts.FileName)}\": {ex.Message}");
+                m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+            }
+        }
+
         private void textBoxStartIDCode_Validating(object sender, CancelEventArgs e)
         {
             if (!ushort.TryParse(textBoxStartIDCode.Text.Trim(), out ushort startIDCode))
@@ -229,13 +271,14 @@ namespace AutoConfigPortScanner
 
         private void textBoxIDCodeValues_Validating(object sender, CancelEventArgs e)
         {
-            if (!string.IsNullOrWhiteSpace(textBoxIDCodes.Text) && textBoxIDCodes.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Any(value => !ushort.TryParse(value.Trim(), out _)))
+            if (!string.IsNullOrWhiteSpace(textBoxIDCodes.Text) && Settings.ParseUniqueUInt16Values(textBoxIDCodes.Text).Length == 0)
                 SetError(sender, e, "Invalid ID code list");
         }
 
         private void textBoxIDCodeValues_Validated(object sender, EventArgs e)
         {
-            Settings.IDCodes = textBoxIDCodes.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(value => ushort.Parse(value.Trim())).ToArray();
+            Settings.IDCodes = Settings.ParseUniqueUInt16Values(textBoxIDCodes.Text);
+            textBoxIDCodes.Text = string.Join(", ", Settings.IDCodes);
             ClearError(sender);
         }
 
@@ -246,15 +289,7 @@ namespace AutoConfigPortScanner
 
             try
             {
-                List<ushort> idCodes = new();
-                string[] values = File.ReadAllText(openFileDialogSelectIDCodes.FileName).Split(new[] { ",", "\r\n", "\n", "\t", " " }, StringSplitOptions.RemoveEmptyEntries);
-
-                foreach (string value in values)
-                {
-                    if (ushort.TryParse(value, out ushort idCode))
-                        idCodes.Add(idCode);
-                }
-
+                ushort[] idCodes = Settings.ParseUniqueUInt16Values(File.ReadAllText(openFileDialogSelectIDCodes.FileName));
                 textBoxIDCodes.Text = string.Join(", ", idCodes);
             }
             catch (Exception ex)
@@ -339,20 +374,26 @@ namespace AutoConfigPortScanner
 
                 m_cancellationTokenSource = new CancellationTokenSource();
 
+                ushort startComPort = ushort.Parse(textBoxStartComPort.Text);
+                ushort endComPort = ushort.Parse(textBoxEndComPort.Text);
+
+                ushort[] comPorts = string.IsNullOrWhiteSpace(textBoxComPorts.Text) ?
+                    Enumerable.Range(startComPort, endComPort - startComPort + 1).Select(value => (ushort)value).ToArray() :
+                    Settings.ParseUniqueUInt16Values(textBoxComPorts.Text);
+
                 ushort startIDCode = ushort.Parse(textBoxStartIDCode.Text);
                 ushort endIDCode = ushort.Parse(textBoxEndIDCode.Text);
 
-                ushort[] idCodes = string.IsNullOrWhiteSpace(textBoxIDCodes.Text) ? 
-                    Enumerable.Range(startIDCode, endIDCode - startIDCode + 1).Select(value => (ushort)value).ToArray() : 
-                    textBoxIDCodes.Text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(value => ushort.Parse(value.Trim())).ToArray();
+                ushort[] idCodes = string.IsNullOrWhiteSpace(textBoxIDCodes.Text) ?
+                    Enumerable.Range(startIDCode, endIDCode - startIDCode + 1).Select(value => (ushort)value).ToArray() :
+                    Settings.ParseUniqueUInt16Values(textBoxIDCodes.Text);
 
                 ExecuteScan(new ScanParameters
                 {
                     Connection = connection,
                     DeviceTable = new TableOperations<Device>(connection),
                     NodeID = nodeID,
-                    StartCOMPort = ushort.Parse(textBoxStartComPort.Text),
-                    EndCOMPort = ushort.Parse(textBoxEndComPort.Text),
+                    ComPorts = comPorts,
                     IDCodes = idCodes,
                     Rescan = checkBoxRescan.Checked,
                     AutoStartParsingSequenceForScan = checkBoxAutoStartParsingSequence.Checked,
@@ -632,6 +673,44 @@ namespace AutoConfigPortScanner
                 control.Enabled = state;
         }
 
+        private void UpdateFeedback(string timeRemaining = null, int? discoveredDevices = null)
+        {
+            if (m_formClosing)
+                return;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action<string, int?>(UpdateFeedback), timeRemaining, discoveredDevices);
+            }
+            else
+            {
+                labelFeedback.Text = string.Format(labelFeedback.Tag.ToString(), timeRemaining ?? m_lastTimeRemaining, discoveredDevices ?? m_lastDiscoveredDevices);
+
+                if (timeRemaining is not null)
+                    m_lastTimeRemaining = timeRemaining;
+
+                if (discoveredDevices is not null)
+                    m_lastDiscoveredDevices = discoveredDevices.Value;
+            }
+        }
+
+        private void ClearFeedback()
+        {
+            if (m_formClosing)
+                return;
+
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(ClearFeedback));
+            }
+            else
+            {
+                labelFeedback.Text = string.Empty;
+                m_lastTimeRemaining = "Calculating...";
+                m_lastDiscoveredDevices = 0;
+            }
+        }
+
         private void UpdateProgressBar(int value)
         {
             if (m_formClosing)
@@ -652,6 +731,7 @@ namespace AutoConfigPortScanner
                 progressBar.Value = value;
             }
         }
+
         private void SetProgressBarMinMax(int minimum, int maximum)
         {
             if (m_formClosing)

@@ -59,6 +59,12 @@
             this.labelIDCodes = new System.Windows.Forms.Label();
             this.labelIDCodeNotes = new System.Windows.Forms.Label();
             this.openFileDialogSelectIDCodes = new System.Windows.Forms.OpenFileDialog();
+            this.labelComPorts = new System.Windows.Forms.Label();
+            this.buttonBrowseComPorts = new System.Windows.Forms.Button();
+            this.textBoxComPorts = new System.Windows.Forms.TextBox();
+            this.labelComPortNotes = new System.Windows.Forms.Label();
+            this.openFileDialogSelectComPorts = new System.Windows.Forms.OpenFileDialog();
+            this.labelFeedback = new System.Windows.Forms.Label();
             this.groupBoxMessages.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).BeginInit();
             this.SuspendLayout();
@@ -66,7 +72,7 @@
             // labelStartComPort
             // 
             this.labelStartComPort.AutoSize = true;
-            this.labelStartComPort.Location = new System.Drawing.Point(11, 18);
+            this.labelStartComPort.Location = new System.Drawing.Point(14, 19);
             this.labelStartComPort.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelStartComPort.Name = "labelStartComPort";
             this.labelStartComPort.Size = new System.Drawing.Size(126, 17);
@@ -89,7 +95,7 @@
             // labelEndComPort
             // 
             this.labelEndComPort.AutoSize = true;
-            this.labelEndComPort.Location = new System.Drawing.Point(206, 18);
+            this.labelEndComPort.Location = new System.Drawing.Point(209, 18);
             this.labelEndComPort.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelEndComPort.Name = "labelEndComPort";
             this.labelEndComPort.Size = new System.Drawing.Size(121, 17);
@@ -112,11 +118,11 @@
             // buttonScan
             // 
             this.buttonScan.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonScan.Location = new System.Drawing.Point(738, 10);
+            this.buttonScan.Location = new System.Drawing.Point(729, 10);
             this.buttonScan.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.buttonScan.Name = "buttonScan";
-            this.buttonScan.Size = new System.Drawing.Size(91, 33);
-            this.buttonScan.TabIndex = 17;
+            this.buttonScan.Size = new System.Drawing.Size(100, 33);
+            this.buttonScan.TabIndex = 21;
             this.buttonScan.Text = "Sca&n";
             this.buttonScan.UseVisualStyleBackColor = true;
             this.buttonScan.Click += new System.EventHandler(this.buttonScan_Click);
@@ -125,11 +131,11 @@
             // 
             this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(738, 475);
+            this.buttonCancel.Location = new System.Drawing.Point(738, 489);
             this.buttonCancel.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(91, 33);
-            this.buttonCancel.TabIndex = 21;
+            this.buttonCancel.TabIndex = 25;
             this.buttonCancel.Text = "&Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
             this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
@@ -140,12 +146,12 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBoxMessages.Controls.Add(this.textBoxMessageOutput);
-            this.groupBoxMessages.Location = new System.Drawing.Point(11, 165);
+            this.groupBoxMessages.Location = new System.Drawing.Point(11, 203);
             this.groupBoxMessages.Margin = new System.Windows.Forms.Padding(2);
             this.groupBoxMessages.Name = "groupBoxMessages";
             this.groupBoxMessages.Padding = new System.Windows.Forms.Padding(2, 1, 2, 1);
-            this.groupBoxMessages.Size = new System.Drawing.Size(818, 310);
-            this.groupBoxMessages.TabIndex = 22;
+            this.groupBoxMessages.Size = new System.Drawing.Size(818, 257);
+            this.groupBoxMessages.TabIndex = 26;
             this.groupBoxMessages.TabStop = false;
             this.groupBoxMessages.Text = "&Messages:";
             // 
@@ -161,7 +167,7 @@
             this.textBoxMessageOutput.Name = "textBoxMessageOutput";
             this.textBoxMessageOutput.ReadOnly = true;
             this.textBoxMessageOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxMessageOutput.Size = new System.Drawing.Size(814, 292);
+            this.textBoxMessageOutput.Size = new System.Drawing.Size(814, 239);
             this.textBoxMessageOutput.TabIndex = 0;
             this.textBoxMessageOutput.TabStop = false;
             // 
@@ -170,11 +176,11 @@
             this.linkLabelClearConsole.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.linkLabelClearConsole.AutoSize = true;
             this.linkLabelClearConsole.Font = new System.Drawing.Font("Segoe UI", 10F);
-            this.linkLabelClearConsole.Location = new System.Drawing.Point(736, 158);
+            this.linkLabelClearConsole.Location = new System.Drawing.Point(736, 195);
             this.linkLabelClearConsole.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.linkLabelClearConsole.Name = "linkLabelClearConsole";
             this.linkLabelClearConsole.Size = new System.Drawing.Size(93, 19);
-            this.linkLabelClearConsole.TabIndex = 20;
+            this.linkLabelClearConsole.TabIndex = 24;
             this.linkLabelClearConsole.TabStop = true;
             this.linkLabelClearConsole.Text = "C&lear Console";
             this.linkLabelClearConsole.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -184,43 +190,43 @@
             // 
             this.progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.progressBar.Location = new System.Drawing.Point(14, 476);
+            this.progressBar.Location = new System.Drawing.Point(14, 490);
             this.progressBar.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(723, 32);
-            this.progressBar.TabIndex = 23;
+            this.progressBar.TabIndex = 27;
             // 
             // checkBoxRescan
             // 
             this.checkBoxRescan.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.checkBoxRescan.AutoSize = true;
-            this.checkBoxRescan.Location = new System.Drawing.Point(402, 52);
+            this.checkBoxRescan.Location = new System.Drawing.Point(402, 93);
             this.checkBoxRescan.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.checkBoxRescan.Name = "checkBoxRescan";
             this.checkBoxRescan.Size = new System.Drawing.Size(309, 21);
-            this.checkBoxRescan.TabIndex = 9;
+            this.checkBoxRescan.TabIndex = 13;
             this.checkBoxRescan.Text = "&Rescan Existing Devices (for config updates)";
             this.checkBoxRescan.UseVisualStyleBackColor = true;
             // 
             // buttonSettings
             // 
             this.buttonSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSettings.Location = new System.Drawing.Point(738, 45);
+            this.buttonSettings.Location = new System.Drawing.Point(729, 45);
             this.buttonSettings.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.buttonSettings.Name = "buttonSettings";
-            this.buttonSettings.Size = new System.Drawing.Size(91, 33);
-            this.buttonSettings.TabIndex = 18;
+            this.buttonSettings.Size = new System.Drawing.Size(100, 33);
+            this.buttonSettings.TabIndex = 22;
             this.buttonSettings.Text = "Se&ttings";
             this.buttonSettings.UseVisualStyleBackColor = true;
             this.buttonSettings.Click += new System.EventHandler(this.buttonSettings_Click);
             // 
             // textBoxEndIDCode
             // 
-            this.textBoxEndIDCode.Location = new System.Drawing.Point(334, 50);
+            this.textBoxEndIDCode.Location = new System.Drawing.Point(334, 91);
             this.textBoxEndIDCode.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.textBoxEndIDCode.Name = "textBoxEndIDCode";
             this.textBoxEndIDCode.Size = new System.Drawing.Size(47, 23);
-            this.textBoxEndIDCode.TabIndex = 8;
+            this.textBoxEndIDCode.TabIndex = 12;
             this.textBoxEndIDCode.Text = "65535";
             this.textBoxEndIDCode.Click += new System.EventHandler(this.SelectAll);
             this.textBoxEndIDCode.Enter += new System.EventHandler(this.SelectAll);
@@ -230,20 +236,20 @@
             // labelEndIDCode
             // 
             this.labelEndIDCode.AutoSize = true;
-            this.labelEndIDCode.Location = new System.Drawing.Point(217, 53);
+            this.labelEndIDCode.Location = new System.Drawing.Point(220, 95);
             this.labelEndIDCode.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelEndIDCode.Name = "labelEndIDCode";
             this.labelEndIDCode.Size = new System.Drawing.Size(110, 17);
-            this.labelEndIDCode.TabIndex = 7;
+            this.labelEndIDCode.TabIndex = 11;
             this.labelEndIDCode.Text = "En&ding ID Code:";
             // 
             // textBoxStartIDCode
             // 
-            this.textBoxStartIDCode.Location = new System.Drawing.Point(144, 50);
+            this.textBoxStartIDCode.Location = new System.Drawing.Point(144, 91);
             this.textBoxStartIDCode.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.textBoxStartIDCode.Name = "textBoxStartIDCode";
             this.textBoxStartIDCode.Size = new System.Drawing.Size(47, 23);
-            this.textBoxStartIDCode.TabIndex = 6;
+            this.textBoxStartIDCode.TabIndex = 10;
             this.textBoxStartIDCode.Text = "1";
             this.textBoxStartIDCode.Click += new System.EventHandler(this.SelectAll);
             this.textBoxStartIDCode.Enter += new System.EventHandler(this.SelectAll);
@@ -253,32 +259,32 @@
             // labelStartIDCode
             // 
             this.labelStartIDCode.AutoSize = true;
-            this.labelStartIDCode.Location = new System.Drawing.Point(22, 53);
+            this.labelStartIDCode.Location = new System.Drawing.Point(25, 95);
             this.labelStartIDCode.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelStartIDCode.Name = "labelStartIDCode";
             this.labelStartIDCode.Size = new System.Drawing.Size(115, 17);
-            this.labelStartIDCode.TabIndex = 5;
+            this.labelStartIDCode.TabIndex = 9;
             this.labelStartIDCode.Text = "S&tarting ID Code:";
             // 
             // labelSourceConfig
             // 
             this.labelSourceConfig.AutoSize = true;
-            this.labelSourceConfig.Location = new System.Drawing.Point(36, 132);
+            this.labelSourceConfig.Location = new System.Drawing.Point(39, 176);
             this.labelSourceConfig.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelSourceConfig.Name = "labelSourceConfig";
             this.labelSourceConfig.Size = new System.Drawing.Size(101, 17);
-            this.labelSourceConfig.TabIndex = 14;
+            this.labelSourceConfig.TabIndex = 18;
             this.labelSourceConfig.Text = "Source Confi&g:";
             // 
             // textBoxSourceConfig
             // 
             this.textBoxSourceConfig.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxSourceConfig.Location = new System.Drawing.Point(144, 129);
+            this.textBoxSourceConfig.Location = new System.Drawing.Point(144, 172);
             this.textBoxSourceConfig.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.textBoxSourceConfig.Name = "textBoxSourceConfig";
             this.textBoxSourceConfig.Size = new System.Drawing.Size(527, 23);
-            this.textBoxSourceConfig.TabIndex = 15;
+            this.textBoxSourceConfig.TabIndex = 19;
             this.textBoxSourceConfig.Text = "SIEGate.exe.config";
             this.textBoxSourceConfig.Click += new System.EventHandler(this.SelectAll);
             this.textBoxSourceConfig.Enter += new System.EventHandler(this.SelectAll);
@@ -287,11 +293,11 @@
             // 
             this.buttonBrowseConfig.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonBrowseConfig.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Bold);
-            this.buttonBrowseConfig.Location = new System.Drawing.Point(670, 128);
+            this.buttonBrowseConfig.Location = new System.Drawing.Point(670, 171);
             this.buttonBrowseConfig.Margin = new System.Windows.Forms.Padding(0);
             this.buttonBrowseConfig.Name = "buttonBrowseConfig";
             this.buttonBrowseConfig.Size = new System.Drawing.Size(38, 25);
-            this.buttonBrowseConfig.TabIndex = 16;
+            this.buttonBrowseConfig.TabIndex = 20;
             this.buttonBrowseConfig.Text = "...";
             this.buttonBrowseConfig.UseVisualStyleBackColor = true;
             this.buttonBrowseConfig.Click += new System.EventHandler(this.buttonBrowseConfig_Click);
@@ -323,11 +329,11 @@
             // buttonImport
             // 
             this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonImport.Location = new System.Drawing.Point(738, 82);
+            this.buttonImport.Location = new System.Drawing.Point(729, 80);
             this.buttonImport.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.buttonImport.Name = "buttonImport";
-            this.buttonImport.Size = new System.Drawing.Size(91, 33);
-            this.buttonImport.TabIndex = 19;
+            this.buttonImport.Size = new System.Drawing.Size(100, 33);
+            this.buttonImport.TabIndex = 23;
             this.buttonImport.Text = "&Import";
             this.buttonImport.UseVisualStyleBackColor = true;
             this.buttonImport.Click += new System.EventHandler(this.buttonImport_Click);
@@ -343,10 +349,10 @@
             // 
             this.textBoxIDCodes.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textBoxIDCodes.Location = new System.Drawing.Point(144, 82);
+            this.textBoxIDCodes.Location = new System.Drawing.Point(144, 118);
             this.textBoxIDCodes.Name = "textBoxIDCodes";
             this.textBoxIDCodes.Size = new System.Drawing.Size(527, 23);
-            this.textBoxIDCodes.TabIndex = 11;
+            this.textBoxIDCodes.TabIndex = 15;
             this.textBoxIDCodes.TextChanged += new System.EventHandler(this.textBoxIDCodeValues_TextChanged);
             this.textBoxIDCodes.Validating += new System.ComponentModel.CancelEventHandler(this.textBoxIDCodeValues_Validating);
             this.textBoxIDCodes.Validated += new System.EventHandler(this.textBoxIDCodeValues_Validated);
@@ -355,11 +361,11 @@
             // 
             this.buttonBrowseIDCodes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonBrowseIDCodes.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Bold);
-            this.buttonBrowseIDCodes.Location = new System.Drawing.Point(670, 81);
+            this.buttonBrowseIDCodes.Location = new System.Drawing.Point(670, 117);
             this.buttonBrowseIDCodes.Margin = new System.Windows.Forms.Padding(0);
             this.buttonBrowseIDCodes.Name = "buttonBrowseIDCodes";
             this.buttonBrowseIDCodes.Size = new System.Drawing.Size(38, 25);
-            this.buttonBrowseIDCodes.TabIndex = 12;
+            this.buttonBrowseIDCodes.TabIndex = 16;
             this.buttonBrowseIDCodes.Text = "...";
             this.buttonBrowseIDCodes.UseVisualStyleBackColor = true;
             this.buttonBrowseIDCodes.Click += new System.EventHandler(this.buttonBrowseIDCodes_Click);
@@ -367,11 +373,11 @@
             // labelIDCodes
             // 
             this.labelIDCodes.AutoSize = true;
-            this.labelIDCodes.Location = new System.Drawing.Point(28, 86);
+            this.labelIDCodes.Location = new System.Drawing.Point(31, 123);
             this.labelIDCodes.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.labelIDCodes.Name = "labelIDCodes";
             this.labelIDCodes.Size = new System.Drawing.Size(109, 17);
-            this.labelIDCodes.TabIndex = 10;
+            this.labelIDCodes.TabIndex = 14;
             this.labelIDCodes.Text = "ID Code &Values:";
             // 
             // labelIDCodeNotes
@@ -379,10 +385,10 @@
             this.labelIDCodeNotes.AutoSize = true;
             this.labelIDCodeNotes.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelIDCodeNotes.ForeColor = System.Drawing.SystemColors.InfoText;
-            this.labelIDCodeNotes.Location = new System.Drawing.Point(144, 104);
+            this.labelIDCodeNotes.Location = new System.Drawing.Point(144, 140);
             this.labelIDCodeNotes.Name = "labelIDCodeNotes";
             this.labelIDCodeNotes.Size = new System.Drawing.Size(507, 15);
-            this.labelIDCodeNotes.TabIndex = 13;
+            this.labelIDCodeNotes.TabIndex = 17;
             this.labelIDCodeNotes.Text = "Comma separated list of ID codes. Overrides starting / ending ID code range when " +
     "specified.";
             // 
@@ -393,13 +399,87 @@
             this.openFileDialogSelectIDCodes.RestoreDirectory = true;
             this.openFileDialogSelectIDCodes.Title = "Select Text/CSV File Containing List of ID Codes";
             // 
+            // labelComPorts
+            // 
+            this.labelComPorts.AutoSize = true;
+            this.labelComPorts.Location = new System.Drawing.Point(20, 47);
+            this.labelComPorts.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
+            this.labelComPorts.Name = "labelComPorts";
+            this.labelComPorts.Size = new System.Drawing.Size(120, 17);
+            this.labelComPorts.TabIndex = 5;
+            this.labelComPorts.Text = "COM &Port Values:";
+            // 
+            // buttonBrowseComPorts
+            // 
+            this.buttonBrowseComPorts.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonBrowseComPorts.Font = new System.Drawing.Font("Calibri", 12F, System.Drawing.FontStyle.Bold);
+            this.buttonBrowseComPorts.Location = new System.Drawing.Point(670, 41);
+            this.buttonBrowseComPorts.Margin = new System.Windows.Forms.Padding(0);
+            this.buttonBrowseComPorts.Name = "buttonBrowseComPorts";
+            this.buttonBrowseComPorts.Size = new System.Drawing.Size(38, 25);
+            this.buttonBrowseComPorts.TabIndex = 7;
+            this.buttonBrowseComPorts.Text = "...";
+            this.buttonBrowseComPorts.UseVisualStyleBackColor = true;
+            this.buttonBrowseComPorts.Click += new System.EventHandler(this.buttonBrowseComPorts_Click);
+            // 
+            // textBoxComPorts
+            // 
+            this.textBoxComPorts.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.textBoxComPorts.Location = new System.Drawing.Point(144, 42);
+            this.textBoxComPorts.Name = "textBoxComPorts";
+            this.textBoxComPorts.Size = new System.Drawing.Size(527, 23);
+            this.textBoxComPorts.TabIndex = 6;
+            this.textBoxComPorts.TextChanged += new System.EventHandler(this.textBoxComPorts_TextChanged);
+            this.textBoxComPorts.Validating += new System.ComponentModel.CancelEventHandler(this.textBoxComPorts_Validating);
+            this.textBoxComPorts.Validated += new System.EventHandler(this.textBoxComPorts_Validated);
+            // 
+            // labelComPortNotes
+            // 
+            this.labelComPortNotes.AutoSize = true;
+            this.labelComPortNotes.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelComPortNotes.ForeColor = System.Drawing.SystemColors.InfoText;
+            this.labelComPortNotes.Location = new System.Drawing.Point(144, 64);
+            this.labelComPortNotes.Name = "labelComPortNotes";
+            this.labelComPortNotes.Size = new System.Drawing.Size(527, 15);
+            this.labelComPortNotes.TabIndex = 8;
+            this.labelComPortNotes.Text = "Comma separated list of COM ports. Overrides starting / ending COM port range whe" +
+    "n specified.";
+            // 
+            // openFileDialogSelectComPorts
+            // 
+            this.openFileDialogSelectComPorts.DefaultExt = "txt";
+            this.openFileDialogSelectComPorts.Filter = "Text Files|*.txt|CSV Files|*.csv|All Files|*.*";
+            this.openFileDialogSelectComPorts.RestoreDirectory = true;
+            this.openFileDialogSelectComPorts.Title = "Select Text/CSV File Containing List of COM Ports";
+            // 
+            // labelFeedback
+            // 
+            this.labelFeedback.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelFeedback.BackColor = System.Drawing.Color.Black;
+            this.labelFeedback.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.labelFeedback.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelFeedback.ForeColor = System.Drawing.Color.Yellow;
+            this.labelFeedback.Location = new System.Drawing.Point(14, 462);
+            this.labelFeedback.Name = "labelFeedback";
+            this.labelFeedback.Size = new System.Drawing.Size(813, 25);
+            this.labelFeedback.TabIndex = 28;
+            this.labelFeedback.Tag = "Estimated Time Remaining: {0} -- Total Discovered Devices: {1:N0}";
+            this.labelFeedback.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
             // MainForm
             // 
             this.AcceptButton = this.buttonScan;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(840, 522);
+            this.ClientSize = new System.Drawing.Size(840, 536);
+            this.Controls.Add(this.labelFeedback);
+            this.Controls.Add(this.labelComPorts);
+            this.Controls.Add(this.buttonBrowseComPorts);
+            this.Controls.Add(this.textBoxComPorts);
+            this.Controls.Add(this.labelComPortNotes);
             this.Controls.Add(this.labelIDCodes);
             this.Controls.Add(this.buttonBrowseIDCodes);
             this.Controls.Add(this.textBoxIDCodes);
@@ -427,7 +507,7 @@
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
-            this.MinimumSize = new System.Drawing.Size(856, 561);
+            this.MinimumSize = new System.Drawing.Size(855, 575);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "IEEE C37.118 Serial Port Scanner and Configuration Loader";
@@ -472,6 +552,12 @@
         private System.Windows.Forms.TextBox textBoxIDCodes;
         private System.Windows.Forms.Label labelIDCodeNotes;
         private System.Windows.Forms.OpenFileDialog openFileDialogSelectIDCodes;
+        private System.Windows.Forms.Label labelComPorts;
+        private System.Windows.Forms.Button buttonBrowseComPorts;
+        private System.Windows.Forms.TextBox textBoxComPorts;
+        private System.Windows.Forms.Label labelComPortNotes;
+        private System.Windows.Forms.OpenFileDialog openFileDialogSelectComPorts;
+        private System.Windows.Forms.Label labelFeedback;
     }
 }
 

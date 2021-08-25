@@ -41,8 +41,7 @@ namespace AutoConfigPortScanner
         public AdoDataConnection Connection;
         public TableOperations<Device> DeviceTable;
         public Guid NodeID;
-        public ushort StartCOMPort;
-        public ushort EndCOMPort;
+        public ushort[] ComPorts;
         public ushort[] IDCodes;
         public bool Rescan;
         public bool AutoStartParsingSequenceForScan;

@@ -25,6 +25,10 @@ AutoConfigPortScanner [options]
 | &#x2011;s | &#x2011;&#x2011;StopBits | Defines the standard number of stopbits per byte. Value is one of: None, One, OnePointFive or Two. |
 | &#x2011;t | &#x2011;&#x2011;DtrEnable | Defines boolean value, true or false, that enables the Data Terminal Ready (DTR) signal during serial communication. |
 | &#x2011;r | &#x2011;&#x2011;RtsEnable | Defines boolean value, true or false, indicating whether the Request to Send (RTS) signal is enabled during serial communication. |
+| &#x2011;a | &#x2011;&#x2011;AutoStartParsingSequence | Defines boolean value, true or false, indicating whether added device configuration should be set to send parsing sequence to start connection. |
+| &#x2011;n | &#x2011;&#x2011;ResponseTimeout | Defines the maximum time, in milliseconds, to wait for a serial response. |
+| &#x2011;c | &#x2011;&#x2011;ConfigFrameTimeout | Defines the maximum time, in milliseconds, to wait for a configuration frame. |
+| &#x2011;w | &#x2011;&#x2011;DisableDataDelay | Defined the delay time, in milliseconds, to wait after sending the DisableRealTimeData command to a device. |
 
 ## Example
 * Scan serial ports using 9600 baud:

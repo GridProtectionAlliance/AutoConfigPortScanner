@@ -116,7 +116,7 @@ namespace AutoConfigPortScanner
             return Regex.Replace(acronym, @"[^A-Z0-9\-!_\.@#\$]", "", RegexOptions.IgnoreCase);
         }
 
-        private bool SaveDeviceConfiguration(IConfigurationFrame configFrame, ushort comPort, ushort idCode, ScanParameters scanParams, HashSet<ushort> configuredPorts)
+        private bool SaveDeviceConfiguration(IConfigurationFrame configFrame, ushort comPort, ushort idCode, ScanParameters scanParams)
         {
             try
             {
@@ -132,7 +132,6 @@ namespace AutoConfigPortScanner
                 m_phasorSignalTypes ??= signalTypeTable.LoadSignalTypes("Phasor").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
 
                 SaveDeviceConnection(configFrame, connectionString, comPort, idCode, scanParams);
-                configuredPorts.Add(comPort);
 
                 return true;
             }

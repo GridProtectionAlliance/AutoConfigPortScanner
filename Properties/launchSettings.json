@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AutoConfigPortScanner": {
+      "commandName": "Project",
+      "commandLineArgs": "-x=true"
+    }
+  }
+}

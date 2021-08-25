@@ -110,11 +110,9 @@ namespace AutoConfigPortScanner
         private Dictionary<string, SignalType> m_deviceSignalTypes;
         private Dictionary<string, SignalType> m_phasorSignalTypes;
 
-        private string GetCleanAcronym(string acronym)
-        {
-            // Remove any invalid characters from acronym
-            return Regex.Replace(acronym, @"[^A-Z0-9\-!_\.@#\$]", "", RegexOptions.IgnoreCase);
-        }
+        // Remove any invalid characters from acronym
+        private static string GetCleanAcronym(string acronym) => 
+            Regex.Replace(acronym, @"[^A-Z0-9\-!_\.@#\$]", "", RegexOptions.IgnoreCase);
 
         private bool SaveDeviceConfiguration(IConfigurationFrame configFrame, ushort comPort, ushort idCode, ScanParameters scanParams)
         {

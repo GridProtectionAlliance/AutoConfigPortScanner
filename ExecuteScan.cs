@@ -26,11 +26,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AutoConfigPortScanner.Model;
 using GSF;
 using GSF.Data.Model;
 using GSF.PhasorProtocols;
 using PhasorProtocolAdapters;
+using AutoConfigPortScanner.Model;
+using GSF.Diagnostics;
 
 namespace AutoConfigPortScanner
 {
@@ -103,6 +104,7 @@ namespace AutoConfigPortScanner
                     int scannedIDCodes = 0;
                     HashSet<ushort> configuredPorts = new();
                     HashSet<ushort> configuredIDCodes = new();
+                    HashSet<ushort> idCodeSettings = new(idCodes);
                     int discoveredDevices = 0;
                     long totalComScanTime = 0L;
                     long totalComScans = 0L;
@@ -195,7 +197,7 @@ namespace AutoConfigPortScanner
 
                                         long remainingTimeEstimate =
                                             (idCodes.Length - configuredIDCodes.Count - scannedIDCodes - 1) *
-                                            (comPorts.Length - configuredPorts.Count); ;
+                                            (comPorts.Length - configuredPorts.Count);
                                             
                                         if (!found)
                                             remainingTimeEstimate += comPorts.Length - configuredPorts.Count - comScans;
@@ -218,6 +220,21 @@ namespace AutoConfigPortScanner
                         // Only control progress bar for manual (non-import) scans
                         if (buttonImport.Enabled)
                             UpdateProgressBar(scannedIDCodes);
+
+                        // Serialize reduced ID code list
+                        try
+                        {
+                            // In case app needs to restart do not rescan existing ID codes
+                            if (Settings.AutoScan && idCodeSettings.Remove(idCode))
+                            {
+                                Settings.IDCodes = idCodeSettings.ToArray();
+                                Settings.Save();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            m_log.Publish(MessageLevel.Error, "UpdateIDCodes", "Failed while reducing ID code list", exception: ex);
+                        }
                     }
 
                     ShowUpdateMessage($"Completed scan for {scannedIDCodes:N0} ID codes over {comPorts.Length:N0} COM ports.{Environment.NewLine}");

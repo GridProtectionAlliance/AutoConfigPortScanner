@@ -32,7 +32,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
-using AutoConfigPortScanner.Model;
 using GSF;
 using GSF.Data;
 using GSF.Data.Model;
@@ -41,18 +40,19 @@ using GSF.IO;
 using GSF.Threading;
 using GSF.Units;
 using Microsoft.VisualBasic.FileIO;
+using AutoConfigPortScanner.Model;
 
 namespace AutoConfigPortScanner
 {
     public partial class MainForm : Form
     {
+        private readonly LogPublisher m_log;
         private bool m_formLoaded;
         private volatile bool m_formClosing;
         private CancellationTokenSource m_cancellationTokenSource;
         private readonly StringBuilder m_messages;
         private readonly ShortSynchronizedOperation m_appendOutputMessages;
         private ManualResetEventSlim m_scanExecutionComplete;
-        private readonly LogPublisher m_log;
         private readonly bool m_debugBuild;
         private string m_lastTimeRemaining = "Calculating...";
         private int m_lastDiscoveredDevices;
@@ -62,11 +62,11 @@ namespace AutoConfigPortScanner
         public MainForm()
         {
             InitializeComponent();
-            m_messages = new StringBuilder();
-            m_appendOutputMessages = new ShortSynchronizedOperation(AppendOutputMessages);
 
-            // Create a new log publisher instance
-            m_log = Logger.CreatePublisher(typeof(MainForm), MessageClass.Application);
+            m_log = Program.Log;
+            m_messages = new StringBuilder();
+            m_appendOutputMessages = new ShortSynchronizedOperation(AppendOutputMessages, 
+                ex => m_log.Publish(MessageLevel.Error, "AppendOutput", "Append Output Message Exception", exception: ex));
 
         #if DEBUG
             m_debugBuild = true;
@@ -113,6 +113,9 @@ namespace AutoConfigPortScanner
                 textBoxSourceConfig.Text = Settings.SourceConfig;
 
                 m_formLoaded = true;
+
+                if (Settings.AutoScan && Settings.IDCodes.Length > 0)
+                    buttonScan_Click(sender, e);
             }
             catch (Exception ex)
             {
@@ -145,13 +148,12 @@ namespace AutoConfigPortScanner
                 if (ushort.TryParse(textBoxEndIDCode.Text, out ushort endIDCode))
                     Settings.EndIDCode = endIDCode;
 
-                Settings.IDCodes = Settings.ParseUniqueUInt16Values(textBoxIDCodes.Text);
+                if (!Settings.AutoScan)
+                    Settings.IDCodes = Settings.ParseUniqueUInt16Values(textBoxIDCodes.Text);
 
                 Settings.Rescan = checkBoxRescan.Checked;
                 Settings.AutoStartParsingSequenceForScan = checkBoxAutoStartParsingSequence.Checked;
                 Settings.SourceConfig = textBoxSourceConfig.Text;
-
-                Settings.Save();
             }
             catch (Exception ex)
             {

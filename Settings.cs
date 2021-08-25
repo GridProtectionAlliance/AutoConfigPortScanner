@@ -54,6 +54,7 @@ namespace AutoConfigPortScanner
         public const bool DefaultRtsEnable = false;
 
         // Main Settings
+        public bool AutoScan { get; set; }                          // Settings file / command line only
         public ushort StartComPort { get; set; }                    // On UI
         public ushort EndComPort { get; set; }                      // On UI
         public ushort[] ComPorts { get; set; }                      // On UI
@@ -99,6 +100,8 @@ namespace AutoConfigPortScanner
             }
 
             IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
+
+            AutoScan = bool.Parse(mainSettings[nameof(AutoScan)]);
             StartComPort = ushort.Parse(mainSettings[nameof(StartComPort)]);
             EndComPort = ushort.Parse(mainSettings[nameof(EndComPort)]);
             ComPorts = ParseUniqueUInt16Values(mainSettings[nameof(ComPorts)]);
@@ -161,6 +164,8 @@ namespace AutoConfigPortScanner
 
             // Only need serialize settings that can be changed on UI:
             IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
+
+            mainSettings[nameof(AutoScan)] = AutoScan.ToString();
             mainSettings[nameof(StartComPort)] = StartComPort.ToString();
             mainSettings[nameof(EndComPort)] = EndComPort.ToString();
             mainSettings[nameof(ComPorts)] = string.Join(",", ComPorts);
@@ -175,6 +180,7 @@ namespace AutoConfigPortScanner
         public static void ConfigureAppSettings(IAppSettingsBuilder builder)
         {
             // Main configuration settings
+            builder.Add($"{MainSection}:{nameof(AutoScan)}", "false", "Defines the value indicating if tool should start scan automatically on start.");
             builder.Add($"{MainSection}:{nameof(StartComPort)}", "0", "Defines the starting COM port number for the scan.");
             builder.Add($"{MainSection}:{nameof(EndComPort)}", "0", "Defines the ending COM port number for the scan.");
             builder.Add($"{MainSection}:{nameof(ComPorts)}", "", "Defines the comma separated list of serial COM ports to scan (overrides start/end range).");
@@ -207,6 +213,7 @@ namespace AutoConfigPortScanner
             [$"--{nameof(StopBits)}"] = $"{SerialSection}:{nameof(StopBits)}",
             [$"--{nameof(DtrEnable)}"] = $"{SerialSection}:{nameof(DtrEnable)}",
             [$"--{nameof(RtsEnable)}"] = $"{SerialSection}:{nameof(RtsEnable)}",
+            [$"--{nameof(AutoScan)}"] = $"{MainSection}:{nameof(AutoScan)}",
             ["--AutoStartParsingSequence"] = $"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}",
             [$"--{nameof(ResponseTimeout)}"] = $"{MainSection}:{nameof(ResponseTimeout)}",
             [$"--{nameof(ConfigFrameTimeout)}"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}",
@@ -217,6 +224,7 @@ namespace AutoConfigPortScanner
             ["-s"] = $"{SerialSection}:{nameof(StopBits)}",
             ["-t"] = $"{SerialSection}:{nameof(DtrEnable)}",
             ["-r"] = $"{SerialSection}:{nameof(RtsEnable)}",
+            ["-x"] = $"{MainSection}:{nameof(AutoScan)}",
             ["-a"] = $"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}",
             ["-n"] = $"{MainSection}:{nameof(ResponseTimeout)}",
             ["-c"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}",

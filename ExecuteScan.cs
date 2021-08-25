@@ -124,7 +124,7 @@ namespace AutoConfigPortScanner
 
                             Dictionary<string, string> settings = device.ConnectionString.ParseKeyValuePairs();
 
-                            if (settings.TryGetValue("port", out string portVal) && ushort.TryParse(portVal, out ushort port))
+                            if (settings.TryGetValue("port", out string portVal) && ushort.TryParse(portVal.Substring(3), out ushort port))
                                 configuredPorts.Add(port);
 
                             configuredIDCodes.Add((ushort)device.AccessID);

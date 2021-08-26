@@ -219,6 +219,8 @@ namespace AutoConfigPortScanner
             [$"--{nameof(AutoRemoveIDs)}"] = $"{MainSection}:{nameof(AutoRemoveIDs)}",
             [$"--{nameof(StartComPort)}"] = $"{MainSection}:{nameof(StartComPort)}",
             [$"--{nameof(EndComPort)}"] = $"{MainSection}:{nameof(EndComPort)}",
+            [$"--{nameof(StartIDCode)}"] = $"{MainSection}:{nameof(StartIDCode)}",
+            [$"--{nameof(EndIDCode)}"] = $"{MainSection}:{nameof(EndIDCode)}",
             ["--AutoStartParsingSequence"] = $"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}",
             [$"--{nameof(ResponseTimeout)}"] = $"{MainSection}:{nameof(ResponseTimeout)}",
             [$"--{nameof(ConfigFrameTimeout)}"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}",

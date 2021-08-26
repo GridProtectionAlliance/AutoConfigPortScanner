@@ -167,8 +167,6 @@ namespace AutoConfigPortScanner
             // Only need serialize settings that can be changed on UI:
             IConfigurationSection mainSettings = Configuration.GetSection(MainSection);
 
-            mainSettings[nameof(AutoScan)] = AutoScan.ToString();
-            mainSettings[nameof(AutoRemoveIDs)] = AutoRemoveIDs.ToString();
             mainSettings[nameof(StartComPort)] = StartComPort.ToString();
             mainSettings[nameof(EndComPort)] = EndComPort.ToString();
             mainSettings[nameof(ComPorts)] = string.Join(",", ComPorts);

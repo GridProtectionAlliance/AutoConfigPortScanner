@@ -39,7 +39,7 @@ namespace AutoConfigPortScanner
         // Defaults for Main Settings
         public const bool DefaultRescan = false;
         public const bool DefaultAutoStartParsingSequenceForScan = true;
-        public const bool DefaultAutoStartParsingSequenceForConfig = true;
+        public const bool DefaultControllingConnection = true;
         public const string DefaultSourceConfig = @"C:\Program Files\SIEGate\SIEGate.exe.config";
         public const int DefaultResponseTimeout = 2000;
         public const int DefaultConfigFrameTimeout = 60000;
@@ -64,7 +64,7 @@ namespace AutoConfigPortScanner
         public ushort[] IDCodes { get; set; }                       // On UI
         public bool Rescan { get; set; }                            // On UI
         public bool AutoStartParsingSequenceForScan { get; set; }   // On UI
-        public bool AutoStartParsingSequenceForConfig { get; set; } // Settings file / command line only
+        public bool ControllingConnection { get; set; }             // Settings file / command line only
         public string SourceConfig { get; set; }                    // On UI
         public int ResponseTimeout { get; set; }                    // Settings file / command line only
         public int ConfigFrameTimeout { get; set; }                 // Settings file / command line only
@@ -85,6 +85,9 @@ namespace AutoConfigPortScanner
 
         public const ushort MinIDCode = 1;
         public const ushort MaxIDCode = ushort.MaxValue;
+
+        public bool StartStopComPortsFromCommandLine;
+        public bool StartStopIDCodesFromCommandLine;
 
         public Settings(IConfiguration configuration)
         {
@@ -112,7 +115,7 @@ namespace AutoConfigPortScanner
             IDCodes = ParseUniqueUInt16Values(mainSettings[nameof(IDCodes)]);
             Rescan = bool.Parse(mainSettings[nameof(Rescan)]);
             AutoStartParsingSequenceForScan = bool.Parse(mainSettings[nameof(AutoStartParsingSequenceForScan)]);
-            AutoStartParsingSequenceForConfig = bool.Parse(mainSettings[nameof(AutoStartParsingSequenceForConfig)]);
+            ControllingConnection = bool.Parse(mainSettings[nameof(ControllingConnection)]);
             SourceConfig = mainSettings[nameof(SourceConfig)];
             ResponseTimeout = int.Parse(mainSettings[nameof(ResponseTimeout)]);
             ConfigFrameTimeout = int.Parse(mainSettings[nameof(ConfigFrameTimeout)]);
@@ -155,6 +158,10 @@ namespace AutoConfigPortScanner
 
             if (ResponseTimeout < DisableDataDelay)
                 ResponseTimeout = DisableDataDelay + 500;
+
+            string commandLine = Environment.CommandLine;
+            StartStopComPortsFromCommandLine = commandLine.Contains($"--{nameof(StartComPort)}") && commandLine.Contains($"--{nameof(EndComPort)}");
+            StartStopIDCodesFromCommandLine = commandLine.Contains($"--{nameof(StartIDCode)}") && commandLine.Contains($"--{nameof(EndIDCode)}");
         }
 
         public IConfiguration Configuration { get; }
@@ -190,8 +197,8 @@ namespace AutoConfigPortScanner
             builder.Add($"{MainSection}:{nameof(EndIDCode)}", "0", "Defines the ending IEEE C37.118 ID code for the scan.");
             builder.Add($"{MainSection}:{nameof(IDCodes)}", "", "Defines the comma separated list of IEEE C37.118 ID codes to scan (overrides start/end range).");
             builder.Add($"{MainSection}:{nameof(Rescan)}", DefaultRescan.ToString(), "Defines the value indicating whether already configured COM ports should be rescanned.");
-            builder.Add($"{MainSection}:{nameof(AutoStartParsingSequenceForScan)}", DefaultAutoStartParsingSequenceForScan.ToString(), "Defines the value indicating whether scan should send parsing sequence to start connection.");
-            builder.Add($"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}", DefaultAutoStartParsingSequenceForConfig.ToString(), "Defines the value indicating whether added device configuration should be set to send parsing sequence to start connection.");
+            builder.Add($"{MainSection}:{nameof(AutoStartParsingSequenceForScan)}", DefaultAutoStartParsingSequenceForScan.ToString(), "Defines the value indicating whether scan should send automatic parsing sequence to start connection.");
+            builder.Add($"{MainSection}:{nameof(ControllingConnection)}", DefaultControllingConnection.ToString(), "Defines the value indicating whether added device configuration should be set for controlling connection.");
             builder.Add($"{MainSection}:{nameof(SourceConfig)}", DefaultSourceConfig, "Defines the source configuration file for host application that contains database connection info.");
             builder.Add($"{MainSection}:{nameof(ResponseTimeout)}", DefaultResponseTimeout.ToString(), "Defines the maximum time, in milliseconds, to wait for a serial response.");
             builder.Add($"{MainSection}:{nameof(ConfigFrameTimeout)}", DefaultConfigFrameTimeout.ToString(), "Defines the maximum time, in milliseconds, to wait for a configuration frame.");
@@ -221,7 +228,7 @@ namespace AutoConfigPortScanner
             [$"--{nameof(EndComPort)}"] = $"{MainSection}:{nameof(EndComPort)}",
             [$"--{nameof(StartIDCode)}"] = $"{MainSection}:{nameof(StartIDCode)}",
             [$"--{nameof(EndIDCode)}"] = $"{MainSection}:{nameof(EndIDCode)}",
-            ["--AutoStartParsingSequence"] = $"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}",
+            [$"--{nameof(ControllingConnection)}"] = $"{MainSection}:{nameof(ControllingConnection)}",
             [$"--{nameof(ResponseTimeout)}"] = $"{MainSection}:{nameof(ResponseTimeout)}",
             [$"--{nameof(ConfigFrameTimeout)}"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}",
             [$"--{nameof(DisableDataDelay)}"] = $"{MainSection}:{nameof(DisableDataDelay)}",
@@ -233,7 +240,7 @@ namespace AutoConfigPortScanner
             ["-r"] = $"{SerialSection}:{nameof(RtsEnable)}",
             ["-x"] = $"{MainSection}:{nameof(AutoScan)}",
             ["-i"] = $"{MainSection}:{nameof(AutoRemoveIDs)}",
-            ["-a"] = $"{MainSection}:{nameof(AutoStartParsingSequenceForConfig)}",
+            ["-a"] = $"{MainSection}:{nameof(ControllingConnection)}",
             ["-n"] = $"{MainSection}:{nameof(ResponseTimeout)}",
             ["-c"] = $"{MainSection}:{nameof(ConfigFrameTimeout)}",
             ["-w"] = $"{MainSection}:{nameof(DisableDataDelay)}"

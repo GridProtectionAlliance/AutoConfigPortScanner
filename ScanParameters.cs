@@ -45,7 +45,7 @@ namespace AutoConfigPortScanner
         public ushort[] IDCodes;
         public bool Rescan;
         public bool AutoStartParsingSequenceForScan;
-        public bool AutoStartParsingSequenceForConfig;
+        public bool ControllingConnection;
         public int ResponseTimeout;
         public int ConfigFrameTimeout;
         public string SourceConfig;

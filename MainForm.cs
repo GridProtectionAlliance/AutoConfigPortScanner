@@ -41,6 +41,7 @@ using GSF.Threading;
 using GSF.Units;
 using Microsoft.VisualBasic.FileIO;
 using AutoConfigPortScanner.Model;
+using GSF.Reflection;
 
 namespace AutoConfigPortScanner
 {
@@ -81,6 +82,8 @@ namespace AutoConfigPortScanner
         {
             try
             {
+                labelVersion.Text = $"Version {AssemblyInfo.EntryAssembly.Version.Major}.{AssemblyInfo.EntryAssembly.Version.Minor}.{AssemblyInfo.EntryAssembly.Version.Build}";
+
                 StringBuilder message = new();
 
                 message.AppendLine($"System COM Port Range: COM{Settings.MinPortNumber} to COM{Settings.MaxPortNumber}");
@@ -94,7 +97,7 @@ namespace AutoConfigPortScanner
                 message.AppendLine($"    RTS Enabled: {Settings.RtsEnable}");
                 message.AppendLine();
                 message.AppendLine("Loaded non-UI Port Scan Settings:");
-                message.AppendLine($"      Auto-Start Parsing: {Settings.AutoStartParsingSequenceForConfig} -> set to add \"{(Settings.AutoStartParsingSequenceForConfig ? "CONTROLLING" : "LISTENING")}\" connection for device configurations");
+                message.AppendLine($"         Connection Type: {(Settings.ControllingConnection ? "Active" : "Passive")} -> set to add \"{(Settings.ControllingConnection ? "CONFIG FRAME CONTROLLED" : "LISTEN ONLY")}\" connections for device configurations");
                 message.AppendLine($"             COM Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ResponseTimeout).TotalSeconds, 3)}");
                 message.AppendLine($"          Config Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ConfigFrameTimeout).TotalSeconds, 3)}");
                 message.AppendLine($"      Disable Data Delay: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.DisableDataDelay).TotalSeconds, 3)}");
@@ -104,10 +107,16 @@ namespace AutoConfigPortScanner
                 // Restore UI settings
                 textBoxStartComPort.Text = Settings.StartComPort.ToString();
                 textBoxEndComPort.Text = Settings.EndComPort.ToString();
-                textBoxComPorts.Text = string.Join(", ", Settings.ComPorts);
+
+                if (!Settings.StartStopComPortsFromCommandLine)
+                    textBoxComPorts.Text = string.Join(", ", Settings.ComPorts);
+
                 textBoxStartIDCode.Text = Settings.StartIDCode.ToString();
                 textBoxEndIDCode.Text = Settings.EndIDCode.ToString();
-                textBoxIDCodes.Text = string.Join(", ", Settings.IDCodes);
+
+                if (!Settings.StartStopIDCodesFromCommandLine)
+                    textBoxIDCodes.Text = string.Join(", ", Settings.IDCodes);
+
                 checkBoxRescan.Checked = Settings.Rescan;
                 checkBoxAutoStartParsingSequence.Checked = Settings.AutoStartParsingSequenceForScan;
                 textBoxSourceConfig.Text = Settings.SourceConfig;
@@ -399,7 +408,7 @@ namespace AutoConfigPortScanner
                     IDCodes = idCodes,
                     Rescan = checkBoxRescan.Checked,
                     AutoStartParsingSequenceForScan = checkBoxAutoStartParsingSequence.Checked,
-                    AutoStartParsingSequenceForConfig = Settings.AutoStartParsingSequenceForConfig,
+                    ControllingConnection = Settings.ControllingConnection,
                     ResponseTimeout = Settings.ResponseTimeout,
                     ConfigFrameTimeout = Settings.ConfigFrameTimeout,
                     SourceConfig = configFile

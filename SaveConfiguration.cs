@@ -100,10 +100,10 @@ namespace AutoConfigPortScanner
     partial class MainForm
     {
         // Connection string parameters of system that is controlling COM connection
-        private const string ControllingConnectionString = "autoStartDataParsingSequence = true; skipDisableRealTimeData = false; disableRealTimeDataOnStop = false";
+        private const string ControllingConnectionString = "skipDisableRealTimeData = false; disableRealTimeDataOnStop = false; deviceSupportsCommands = true";
 
         // Connection string parameters of system that is only listening to COM connection
-        private const string ListeningConnectionString = "autoStartDataParsingSequence = false; skipDisableRealTimeData = true; disableRealTimeDataOnStop = false";
+        private const string ListeningConnectionString = "skipDisableRealTimeData = true; disableRealTimeDataOnStop = false; deviceSupportsCommands = false";
 
         private static readonly string[] s_commonVoltageLevels = { "44", "69", "115", "138", "161", "169", "230", "345", "500", "765", "1100" };
 
@@ -119,9 +119,8 @@ namespace AutoConfigPortScanner
             try
             {
                 AdoDataConnection connection = scanParams.Connection;
-                bool autoStartParsingSequenceForConfig = scanParams.AutoStartParsingSequenceForConfig;
                 TableOperations<SignalType> signalTypeTable = new(connection);
-                string configConnectionMode = autoStartParsingSequenceForConfig ? ControllingConnectionString : ListeningConnectionString;
+                string configConnectionMode = scanParams.ControllingConnection ? ControllingConnectionString : ListeningConnectionString;
                 string connectionString = string.Format(ConnectionStringTemplate, comPort, Settings.BaudRate, Settings.Parity, Settings.StopBits, Settings.DataBits, Settings.DtrEnable, Settings.RtsEnable, configConnectionMode);
 
                 ShowUpdateMessage($"{Tab2}Saving \"{configFrame.Cells[0].StationName}\" configuration received on COM{comPort} with ID code {idCode}...");
@@ -153,17 +152,9 @@ namespace AutoConfigPortScanner
             Device device = scanParams.Devices.FindDeviceByComPort(comPort) ?? deviceTable.NewDevice();
             Dictionary<string, string> connectionStringMap = connectionString.ParseKeyValuePairs();
 
-            bool autoStartDataParsingSequence = true;
             bool skipDisableRealTimeData = false;
 
             // Handle connection string parameters that are fields in the device table
-            if (connectionStringMap.ContainsKey("autoStartDataParsingSequence"))
-            {
-                autoStartDataParsingSequence = bool.Parse(connectionStringMap["autoStartDataParsingSequence"]);
-                connectionStringMap.Remove("autoStartDataParsingSequence");
-                connectionString = connectionStringMap.JoinKeyValuePairs();
-            }
-
             if (connectionStringMap.ContainsKey("skipDisableRealTimeData"))
             {
                 skipDisableRealTimeData = bool.Parse(connectionStringMap["skipDisableRealTimeData"]);
@@ -192,7 +183,7 @@ namespace AutoConfigPortScanner
             device.AccessID = idCode;
             device.IsConcentrator = false;
             device.ConnectionString = connectionString;
-            device.AutoStartDataParsingSequence = autoStartDataParsingSequence;
+            device.AutoStartDataParsingSequence = true;
             device.SkipDisableRealTimeData = skipDisableRealTimeData;
             device.Enabled = true;
 

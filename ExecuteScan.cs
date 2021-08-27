@@ -271,8 +271,7 @@ namespace AutoConfigPortScanner
 
         private bool ScanPortWithIDCode(ushort comPort, ushort idCode, ScanParameters scanParams, CancellationToken cancellationToken)
         {
-            bool autoStartParsingSequenceForScan = scanParams.AutoStartParsingSequenceForScan;
-            string scanConnectionMode = autoStartParsingSequenceForScan ? ActiveScanConnectionString : PassiveScanConnectionString;
+            string scanConnectionMode = scanParams.AutoStartParsingSequenceForScan ? ActiveScanConnectionString : PassiveScanConnectionString;
             string connectionString = string.Format(ConnectionStringTemplate, comPort, Settings.BaudRate, Settings.Parity, Settings.StopBits, Settings.DataBits, Settings.DtrEnable, Settings.RtsEnable, scanConnectionMode);
 
             ShowUpdateMessage($"{Tab1}Scanning COM{comPort} with ID code {idCode}...");
@@ -292,7 +291,6 @@ namespace AutoConfigPortScanner
 
             try
             {
-                bool autoStartParsingSequenceForScan = scanParams.AutoStartParsingSequenceForScan;
                 int responseTimeout = scanParams.ResponseTimeout;
                 int configFrameTimeout = scanParams.ConfigFrameTimeout;
 
@@ -307,7 +305,7 @@ namespace AutoConfigPortScanner
                 m_configurationFrame = null;
 
                 // Set auto-start parsing sequence for scan state
-                m_autoStartParsingSequenceForScan = autoStartParsingSequenceForScan;
+                m_autoStartParsingSequenceForScan = scanParams.AutoStartParsingSequenceForScan;
 
                 // Inform user of temporary loss of command access
                 ShowUpdateMessage($"{Tab2}Requesting device configuration...");

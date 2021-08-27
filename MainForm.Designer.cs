@@ -65,6 +65,7 @@
             this.labelComPortNotes = new System.Windows.Forms.Label();
             this.openFileDialogSelectComPorts = new System.Windows.Forms.OpenFileDialog();
             this.labelFeedback = new System.Windows.Forms.Label();
+            this.labelVersion = new System.Windows.Forms.Label();
             this.groupBoxMessages.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).BeginInit();
             this.SuspendLayout();
@@ -468,6 +469,22 @@
             this.labelFeedback.Tag = "Estimated Time Remaining: {0} -- Total Discovered Devices: {1:N0}";
             this.labelFeedback.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // Version
+            // 
+            this.labelVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelVersion.BackColor = System.Drawing.SystemColors.Control;
+            this.labelVersion.Cursor = System.Windows.Forms.Cursors.Default;
+            this.labelVersion.Font = new System.Drawing.Font("Arial", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelVersion.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.labelVersion.Location = new System.Drawing.Point(729, 115);
+            this.labelVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.labelVersion.Name = "labelVersion";
+            this.labelVersion.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.labelVersion.Size = new System.Drawing.Size(100, 20);
+            this.labelVersion.TabIndex = 29;
+            this.labelVersion.Text = "Version: x.x.x";
+            this.labelVersion.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            // 
             // MainForm
             // 
             this.AcceptButton = this.buttonScan;
@@ -475,6 +492,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
             this.ClientSize = new System.Drawing.Size(840, 536);
+            this.Controls.Add(this.labelVersion);
             this.Controls.Add(this.labelFeedback);
             this.Controls.Add(this.labelComPorts);
             this.Controls.Add(this.buttonBrowseComPorts);
@@ -558,6 +576,7 @@
         private System.Windows.Forms.Label labelComPortNotes;
         private System.Windows.Forms.OpenFileDialog openFileDialogSelectComPorts;
         private System.Windows.Forms.Label labelFeedback;
+        internal System.Windows.Forms.Label labelVersion;
     }
 }
 

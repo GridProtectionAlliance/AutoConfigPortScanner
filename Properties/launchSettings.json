@@ -2,7 +2,7 @@
   "profiles": {
     "AutoConfigPortScanner": {
       "commandName": "Project",
-      "commandLineArgs": " -x=true --StartComPort=99 --EndComPort=101"
+      "commandLineArgs": "--StartComPort=99 --EndComPort=101"
     }
   }
 }

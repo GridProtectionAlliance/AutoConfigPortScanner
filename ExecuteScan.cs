@@ -160,20 +160,26 @@ namespace AutoConfigPortScanner
                             try
                             {
                                 ShowUpdateMessage($"Starting scan for ID code {idCode}...");
-                                int comScans = 0;
+                                int processedComPorts = 0;
                                 bool found = false;
+
+                                HashSet<ushort> unprocessedComPorts = new(comPorts);
+                                unprocessedComPorts.ExceptWith(configuredPorts);
+                                comPorts = unprocessedComPorts.ToArray();
 
                                 foreach (ushort comPort in comPorts)
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
 
                                     Ticks comScanStartTime = DateTime.UtcNow.Ticks;
+                                    bool scanned = true;
 
                                     try
                                     {
                                         if (configuredPorts.Contains(comPort))
                                         {
                                             ShowUpdateMessage($"Skipping scan for already configured COM{comPort}...");
+                                            scanned = false;
                                             continue;
                                         }
 
@@ -191,19 +197,22 @@ namespace AutoConfigPortScanner
                                         Ticks comScanTime = DateTime.UtcNow.Ticks - comScanStartTime;
                                         ShowUpdateMessage($"{Environment.NewLine}>> Scan time for COM{comPort} for ID code {idCode}: {comScanTime.ToElapsedTimeString(3)}.{Environment.NewLine}");
 
-                                        comScans++;
+                                        processedComPorts++;
                                         totalComScanTime += comScanTime.Value;
-                                        totalComScans++;
 
-                                        long remainingTimeEstimate =
-                                            (idCodes.Length - configuredIDCodes.Count - scannedIDCodes - 1) *
-                                            (comPorts.Length - configuredPorts.Count);
-                                            
-                                        if (!found)
-                                            remainingTimeEstimate += comPorts.Length - configuredPorts.Count - comScans;
+                                        if (scanned)
+                                        {
+                                            totalComScans++;
 
-                                        remainingTimeEstimate *= totalComScanTime / totalComScans;
-                                        UpdateFeedback(new Ticks(remainingTimeEstimate).ToElapsedTimeString(0));
+                                            long remainingTimeEstimate =
+                                                (idCodes.Length - configuredIDCodes.Count - scannedIDCodes) * comPorts.Length;
+
+                                            if (!found)
+                                                remainingTimeEstimate += comPorts.Length - processedComPorts;
+
+                                            remainingTimeEstimate *= (long)(totalComScanTime / (double)totalComScans);
+                                            UpdateFeedback(new Ticks(remainingTimeEstimate).ToElapsedTimeString(0));
+                                        }
                                     }
                                 }
 

@@ -114,30 +114,35 @@ namespace AutoConfigPortScanner
         private static string GetCleanAcronym(string acronym) => 
             Regex.Replace(acronym, @"[^A-Z0-9\-!_\.@#\$]", "", RegexOptions.IgnoreCase);
 
-        private bool SaveDeviceConfiguration(IConfigurationFrame configFrame, ushort comPort, ushort idCode, ScanParameters scanParams)
+        private static string ChangeConnectionStringToControlling(string connectionString)
         {
-            try
+            Dictionary<string, string> connectionStringMap = connectionString.ParseKeyValuePairs();
+
+            foreach (KeyValuePair<string, string> kvp in ControllingConnectionString.ParseKeyValuePairs())
+                connectionStringMap[kvp.Key] = kvp.Value;
+
+            return connectionStringMap.JoinKeyValuePairs();
+        }
+
+        private static string ChangeConnectionStringToListening(string connectionString)
+        {
+            Dictionary<string, string> connectionStringMap = connectionString.ParseKeyValuePairs();
+
+            foreach (KeyValuePair<string, string> kvp in ListeningConnectionString.ParseKeyValuePairs())
+                connectionStringMap[kvp.Key] = kvp.Value;
+
+            return connectionStringMap.JoinKeyValuePairs();
+        }
+
+        private void UpdateAllDeviceConfigurationTypes(AdoDataConnection connection, bool controlling)
+        {
+            TableOperations<Device> deviceTable = new(connection);
+
+            foreach (Device device in deviceTable.QueryRecords())
             {
-                AdoDataConnection connection = scanParams.Connection;
-                TableOperations<SignalType> signalTypeTable = new(connection);
-                string configConnectionMode = scanParams.ControllingConnection ? ControllingConnectionString : ListeningConnectionString;
-                string connectionString = string.Format(ConnectionStringTemplate, comPort, Settings.BaudRate, Settings.Parity, Settings.StopBits, Settings.DataBits, Settings.DtrEnable, Settings.RtsEnable, configConnectionMode);
-
-                ShowUpdateMessage($"{Tab2}Saving \"{configFrame.Cells[0].StationName}\" configuration received on COM{comPort} with ID code {idCode}...");
-
-                m_deviceSignalTypes ??= signalTypeTable.LoadSignalTypes("PMU").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
-                m_phasorSignalTypes ??= signalTypeTable.LoadSignalTypes("Phasor").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
-
-                SaveDeviceConnection(configFrame, connectionString, comPort, idCode, scanParams);
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                ShowUpdateMessage($"{Tab2}ERROR: Failed while saving \"{configFrame.Cells[0].StationName}\" configuration: {ex.Message}");
-                m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
-                
-                return false;
+                device.ConnectionString = controlling ?
+                    ChangeConnectionStringToControlling(device.ConnectionString) :
+                    ChangeConnectionStringToListening(device.ConnectionString);
             }
         }
 

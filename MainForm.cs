@@ -319,58 +319,14 @@ namespace AutoConfigPortScanner
         private void buttonScan_Click(object sender, EventArgs e)
         {
             string configFile = FilePath.GetAbsolutePath(textBoxSourceConfig.Text);
-            Guid nodeID;
-            string connectionString, dataProviderString;
 
             m_scanExecutionComplete ??= new ManualResetEventSlim(false);
             m_scanExecutionComplete.Reset();
 
-            try
-            {
-                // Fail if source config file does not exist
-                if (!File.Exists(configFile))
-                    throw new FileNotFoundException($"Source config file \"{configFile}\" was not found.");
+            (Guid nodeID, string connectionString, string dataProviderString, bool error) = LoadConnectionSettings(configFile);
 
-                // Load needed database settings from target config file
-                XDocument serviceConfig = XDocument.Load(configFile);
-
-                nodeID = Guid.Parse(serviceConfig
-                    .Descendants("systemSettings")
-                    .SelectMany(systemSettings => systemSettings.Elements("add"))
-                    .Where(element => "NodeID".Equals((string)element.Attribute("name"), StringComparison.OrdinalIgnoreCase))
-                    .Select(element => (string)element.Attribute("value"))
-                    .FirstOrDefault() ?? Guid.Empty.ToString());
-
-                if (nodeID == Guid.Empty)
-                    throw new InvalidOperationException("Failed to find \"NodeID\" setting");
-
-                connectionString = serviceConfig
-                    .Descendants("systemSettings")
-                    .SelectMany(systemSettings => systemSettings.Elements("add"))
-                    .Where(element => "ConnectionString".Equals((string)element.Attribute("name"), StringComparison.OrdinalIgnoreCase))
-                    .Select(element => (string)element.Attribute("value"))
-                    .FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(connectionString))
-                    throw new InvalidOperationException("Failed to find \"ConnectionString\" setting");
-
-                dataProviderString = serviceConfig
-                    .Descendants("systemSettings")
-                    .SelectMany(systemSettings => systemSettings.Elements("add"))
-                    .Where(element => "DataProviderString".Equals((string)element.Attribute("name"), StringComparison.OrdinalIgnoreCase))
-                    .Select(element => (string)element.Attribute("value"))
-                    .FirstOrDefault();
-
-                if (string.IsNullOrWhiteSpace(dataProviderString))
-                    throw new InvalidOperationException("Failed to find \"DataProviderString\" setting");
-            }
-            catch (Exception ex)
-            {
-                ShowUpdateMessage($"ERROR: Failed while attempting to parse settings from \"{Path.GetFileName(configFile)}\": {ex.Message}");
-                m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
-                m_scanExecutionComplete.Set();
+            if (error)
                 return;
-            }
 
             try
             {
@@ -547,6 +503,38 @@ namespace AutoConfigPortScanner
                     SetControlEnabledState(buttonImport, true);
                 }
             });
+        }
+
+        private void buttonChangeMode_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show(this, "Are you sure?", "Change Configured Mode", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+                return;
+
+            string configFile = FilePath.GetAbsolutePath(textBoxSourceConfig.Text);
+            (_, string connectionString, string dataProviderString, bool error) = LoadConnectionSettings(configFile);
+
+            if (error)
+                return;
+
+            try
+            {
+                AdoDataConnection connection = new(connectionString, dataProviderString);
+                StringBuilder message = new();
+
+                message.AppendLine();
+                message.AppendLine($"Opened database configured in \"{Path.GetFileName(configFile)}\".");
+                message.AppendLine($"");
+
+                ShowUpdateMessage(message.ToString());
+
+            }
+            catch (Exception ex)
+            {
+                ShowUpdateMessage($"ERROR: Failed while attempting to open database configured in \"{Path.GetFileName(configFile)}\": {ex.Message}");
+                m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+                m_scanExecutionComplete.Set();
+            }
+
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
@@ -757,6 +745,62 @@ namespace AutoConfigPortScanner
                 progressBar.Minimum = minimum < 0 ? 0 : minimum;
                 progressBar.Maximum = maximum;
             }
+        }
+
+        private (Guid nodeID, string connectionString, string dataProviderString, bool error) LoadConnectionSettings(string configFile)
+        {
+            Guid nodeID = default;
+            string connectionString = default;
+            string dataProviderString = default;
+            bool error = false;
+
+            try
+            {
+                // Fail if source config file does not exist
+                if (!File.Exists(configFile))
+                    throw new FileNotFoundException($"Source config file \"{configFile}\" was not found.");
+
+                // Load needed database settings from target config file
+                XDocument serviceConfig = XDocument.Load(configFile);
+
+                nodeID = Guid.Parse(serviceConfig
+                    .Descendants("systemSettings")
+                    .SelectMany(systemSettings => systemSettings.Elements("add"))
+                    .Where(element => "NodeID".Equals((string)element.Attribute("name"), StringComparison.OrdinalIgnoreCase))
+                    .Select(element => (string)element.Attribute("value"))
+                    .FirstOrDefault() ?? Guid.Empty.ToString());
+
+                if (nodeID == Guid.Empty)
+                    throw new InvalidOperationException("Failed to find \"NodeID\" setting");
+
+                connectionString = serviceConfig
+                    .Descendants("systemSettings")
+                    .SelectMany(systemSettings => systemSettings.Elements("add"))
+                    .Where(element => "ConnectionString".Equals((string)element.Attribute("name"), StringComparison.OrdinalIgnoreCase))
+                    .Select(element => (string)element.Attribute("value"))
+                    .FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(connectionString))
+                    throw new InvalidOperationException("Failed to find \"ConnectionString\" setting");
+
+                dataProviderString = serviceConfig
+                    .Descendants("systemSettings")
+                    .SelectMany(systemSettings => systemSettings.Elements("add"))
+                    .Where(element => "DataProviderString".Equals((string)element.Attribute("name"), StringComparison.OrdinalIgnoreCase))
+                    .Select(element => (string)element.Attribute("value"))
+                    .FirstOrDefault();
+
+                if (string.IsNullOrWhiteSpace(dataProviderString))
+                    throw new InvalidOperationException("Failed to find \"DataProviderString\" setting");
+            }
+            catch (Exception ex)
+            {
+                ShowUpdateMessage($"ERROR: Failed while attempting to parse settings from \"{Path.GetFileName(configFile)}\": {ex.Message}");
+                m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+                error = true;
+            }
+
+            return (nodeID, connectionString, dataProviderString, error);
         }
 
         #endregion

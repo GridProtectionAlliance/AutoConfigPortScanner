@@ -524,7 +524,7 @@ namespace AutoConfigPortScanner
 
             try
             {
-                connection = new(connectionString, dataProviderString);
+                connection = new AdoDataConnection(connectionString, dataProviderString);
                 StringBuilder message = new();
 
                 message.AppendLine();

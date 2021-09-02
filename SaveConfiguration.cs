@@ -465,7 +465,7 @@ namespace AutoConfigPortScanner
                     phasor.Phase = guessPhase('+', phasor.Label);
                     phasor.BaseKV = guessBaseKV(500, phasor.Label, string.IsNullOrWhiteSpace(device.Name) ? device.Acronym ?? "" : device.Name);
                     phasor.DestinationPhasorID = null;
-                    phasor.SourceIndex = phasorDefinition.Index;
+                    phasor.SourceIndex = phasorDefinition.Index + 1;
 
                     phasorTable.AddNewPhasor(phasor);
                     SavePhasorMeasurement(isVoltage ? vphmSignalType : iphmSignalType, device, phasorDefinition, phasor.Phase, phasor.SourceIndex, phasor.BaseKV, measurementTable, scanParams);
@@ -478,7 +478,7 @@ namespace AutoConfigPortScanner
                 {
                     bool isVoltage = phasorDefinition.PhasorType == PhasorType.Voltage;
 
-                    Phasor phasor = phasorTable.QueryPhasorForDevice(device.ID, phasorDefinition.Index);
+                    Phasor phasor = phasorTable.QueryPhasorForDevice(device.ID, phasorDefinition.Index + 1);
                     phasor.DeviceID = device.ID;
                     phasor.Label = phasorDefinition.Label;
                     phasor.Type = isVoltage ? 'V' : 'I';

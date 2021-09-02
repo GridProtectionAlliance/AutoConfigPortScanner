@@ -64,7 +64,7 @@ namespace AutoConfigPortScanner
         public ushort[] IDCodes { get; set; }                       // On UI
         public bool Rescan { get; set; }                            // On UI
         public bool AutoStartParsingSequenceForScan { get; set; }   // On UI
-        public bool ControllingConnection { get; set; }             // Settings file / command line only
+        public bool ControllingConnection { get; set; }             // On UI
         public string SourceConfig { get; set; }                    // On UI
         public int ResponseTimeout { get; set; }                    // Settings file / command line only
         public int ConfigFrameTimeout { get; set; }                 // Settings file / command line only
@@ -182,6 +182,7 @@ namespace AutoConfigPortScanner
             mainSettings[nameof(IDCodes)] = string.Join(",", IDCodes);
             mainSettings[nameof(Rescan)] = Rescan.ToString();
             mainSettings[nameof(AutoStartParsingSequenceForScan)] = AutoStartParsingSequenceForScan.ToString();
+            mainSettings[nameof(ControllingConnection)] = ControllingConnection.ToString();
             mainSettings[nameof(SourceConfig)] = SourceConfig;
         }
 

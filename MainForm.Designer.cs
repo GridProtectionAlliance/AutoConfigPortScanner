@@ -67,6 +67,8 @@
             this.labelFeedback = new System.Windows.Forms.Label();
             this.labelVersion = new System.Windows.Forms.Label();
             this.buttonChangeMode = new System.Windows.Forms.Button();
+            this.radioButtonControlling = new System.Windows.Forms.RadioButton();
+            this.radioButtonListening = new System.Windows.Forms.RadioButton();
             this.groupBoxMessages.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorProvider)).BeginInit();
             this.SuspendLayout();
@@ -120,10 +122,10 @@
             // buttonScan
             // 
             this.buttonScan.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonScan.Location = new System.Drawing.Point(723, 10);
+            this.buttonScan.Location = new System.Drawing.Point(719, 10);
             this.buttonScan.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.buttonScan.Name = "buttonScan";
-            this.buttonScan.Size = new System.Drawing.Size(106, 33);
+            this.buttonScan.Size = new System.Drawing.Size(110, 33);
             this.buttonScan.TabIndex = 21;
             this.buttonScan.Text = "Sca&n";
             this.buttonScan.UseVisualStyleBackColor = true;
@@ -133,11 +135,11 @@
             // 
             this.buttonCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.buttonCancel.Location = new System.Drawing.Point(738, 489);
+            this.buttonCancel.Location = new System.Drawing.Point(738, 569);
             this.buttonCancel.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.buttonCancel.Name = "buttonCancel";
             this.buttonCancel.Size = new System.Drawing.Size(91, 33);
-            this.buttonCancel.TabIndex = 25;
+            this.buttonCancel.TabIndex = 28;
             this.buttonCancel.Text = "&Cancel";
             this.buttonCancel.UseVisualStyleBackColor = true;
             this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
@@ -152,8 +154,8 @@
             this.groupBoxMessages.Margin = new System.Windows.Forms.Padding(2);
             this.groupBoxMessages.Name = "groupBoxMessages";
             this.groupBoxMessages.Padding = new System.Windows.Forms.Padding(2, 1, 2, 1);
-            this.groupBoxMessages.Size = new System.Drawing.Size(818, 257);
-            this.groupBoxMessages.TabIndex = 26;
+            this.groupBoxMessages.Size = new System.Drawing.Size(818, 337);
+            this.groupBoxMessages.TabIndex = 29;
             this.groupBoxMessages.TabStop = false;
             this.groupBoxMessages.Text = "&Messages:";
             // 
@@ -169,7 +171,7 @@
             this.textBoxMessageOutput.Name = "textBoxMessageOutput";
             this.textBoxMessageOutput.ReadOnly = true;
             this.textBoxMessageOutput.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxMessageOutput.Size = new System.Drawing.Size(814, 239);
+            this.textBoxMessageOutput.Size = new System.Drawing.Size(814, 319);
             this.textBoxMessageOutput.TabIndex = 0;
             this.textBoxMessageOutput.TabStop = false;
             // 
@@ -182,9 +184,9 @@
             this.linkLabelClearConsole.Margin = new System.Windows.Forms.Padding(2, 0, 2, 0);
             this.linkLabelClearConsole.Name = "linkLabelClearConsole";
             this.linkLabelClearConsole.Size = new System.Drawing.Size(93, 19);
-            this.linkLabelClearConsole.TabIndex = 24;
+            this.linkLabelClearConsole.TabIndex = 27;
             this.linkLabelClearConsole.TabStop = true;
-            this.linkLabelClearConsole.Text = "C&lear Console";
+            this.linkLabelClearConsole.Text = "Clear Console";
             this.linkLabelClearConsole.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.linkLabelClearConsole.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabelClearConsole_LinkClicked);
             // 
@@ -192,11 +194,11 @@
             // 
             this.progressBar.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.progressBar.Location = new System.Drawing.Point(14, 490);
+            this.progressBar.Location = new System.Drawing.Point(14, 570);
             this.progressBar.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(723, 32);
-            this.progressBar.TabIndex = 27;
+            this.progressBar.TabIndex = 31;
             // 
             // checkBoxRescan
             // 
@@ -213,10 +215,10 @@
             // buttonSettings
             // 
             this.buttonSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSettings.Location = new System.Drawing.Point(723, 45);
+            this.buttonSettings.Location = new System.Drawing.Point(719, 45);
             this.buttonSettings.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.buttonSettings.Name = "buttonSettings";
-            this.buttonSettings.Size = new System.Drawing.Size(106, 33);
+            this.buttonSettings.Size = new System.Drawing.Size(110, 33);
             this.buttonSettings.TabIndex = 22;
             this.buttonSettings.Text = "Se&ttings";
             this.buttonSettings.UseVisualStyleBackColor = true;
@@ -276,7 +278,7 @@
             this.labelSourceConfig.Name = "labelSourceConfig";
             this.labelSourceConfig.Size = new System.Drawing.Size(101, 17);
             this.labelSourceConfig.TabIndex = 18;
-            this.labelSourceConfig.Text = "Source Confi&g:";
+            this.labelSourceConfig.Text = "So&urce Config:";
             // 
             // textBoxSourceConfig
             // 
@@ -331,10 +333,10 @@
             // buttonImport
             // 
             this.buttonImport.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonImport.Location = new System.Drawing.Point(723, 80);
+            this.buttonImport.Location = new System.Drawing.Point(719, 80);
             this.buttonImport.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.buttonImport.Name = "buttonImport";
-            this.buttonImport.Size = new System.Drawing.Size(106, 33);
+            this.buttonImport.Size = new System.Drawing.Size(110, 33);
             this.buttonImport.TabIndex = 23;
             this.buttonImport.Text = "&Import";
             this.buttonImport.UseVisualStyleBackColor = true;
@@ -463,40 +465,68 @@
             this.labelFeedback.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.labelFeedback.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelFeedback.ForeColor = System.Drawing.Color.Yellow;
-            this.labelFeedback.Location = new System.Drawing.Point(14, 462);
+            this.labelFeedback.Location = new System.Drawing.Point(14, 542);
             this.labelFeedback.Name = "labelFeedback";
             this.labelFeedback.Size = new System.Drawing.Size(813, 25);
-            this.labelFeedback.TabIndex = 28;
+            this.labelFeedback.TabIndex = 30;
             this.labelFeedback.Tag = "Estimated Time Remaining: {0} -- Total Discovered Devices: {1:N0}";
             this.labelFeedback.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // labelVersion
             // 
-            this.labelVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.labelVersion.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.labelVersion.BackColor = System.Drawing.SystemColors.Control;
             this.labelVersion.Cursor = System.Windows.Forms.Cursors.Default;
             this.labelVersion.Font = new System.Drawing.Font("Arial", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelVersion.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.labelVersion.Location = new System.Drawing.Point(729, 173);
+            this.labelVersion.Location = new System.Drawing.Point(-1, 602);
             this.labelVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.labelVersion.Name = "labelVersion";
             this.labelVersion.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.labelVersion.Size = new System.Drawing.Size(100, 20);
-            this.labelVersion.TabIndex = 29;
+            this.labelVersion.Size = new System.Drawing.Size(100, 15);
+            this.labelVersion.TabIndex = 32;
             this.labelVersion.Text = "Version: x.x.x";
             this.labelVersion.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 
             // buttonChangeMode
             // 
             this.buttonChangeMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonChangeMode.Location = new System.Drawing.Point(723, 115);
+            this.buttonChangeMode.Location = new System.Drawing.Point(719, 115);
             this.buttonChangeMode.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
             this.buttonChangeMode.Name = "buttonChangeMode";
-            this.buttonChangeMode.Size = new System.Drawing.Size(106, 33);
-            this.buttonChangeMode.TabIndex = 30;
+            this.buttonChangeMode.Size = new System.Drawing.Size(110, 33);
+            this.buttonChangeMode.TabIndex = 24;
             this.buttonChangeMode.Text = "Change M&ode";
             this.buttonChangeMode.UseVisualStyleBackColor = true;
             this.buttonChangeMode.Click += new System.EventHandler(this.buttonChangeMode_Click);
+            // 
+            // radioButtonControlling
+            // 
+            this.radioButtonControlling.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.radioButtonControlling.AutoSize = true;
+            this.radioButtonControlling.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioButtonControlling.Location = new System.Drawing.Point(723, 149);
+            this.radioButtonControlling.Name = "radioButtonControlling";
+            this.radioButtonControlling.Size = new System.Drawing.Size(112, 17);
+            this.radioButtonControlling.TabIndex = 25;
+            this.radioButtonControlling.TabStop = true;
+            this.radioButtonControlling.Text = "Controllin&g (Active)";
+            this.radioButtonControlling.UseVisualStyleBackColor = true;
+            this.radioButtonControlling.CheckedChanged += new System.EventHandler(this.radioButtonControlling_CheckedChanged);
+            // 
+            // radioButtonListening
+            // 
+            this.radioButtonListening.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.radioButtonListening.AutoSize = true;
+            this.radioButtonListening.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.radioButtonListening.Location = new System.Drawing.Point(723, 166);
+            this.radioButtonListening.Name = "radioButtonListening";
+            this.radioButtonListening.Size = new System.Drawing.Size(113, 17);
+            this.radioButtonListening.TabIndex = 26;
+            this.radioButtonListening.TabStop = true;
+            this.radioButtonListening.Text = "&Listening (Passive)";
+            this.radioButtonListening.UseVisualStyleBackColor = true;
+            this.radioButtonListening.CheckedChanged += new System.EventHandler(this.radioButtonListening_CheckedChanged);
             // 
             // MainForm
             // 
@@ -504,7 +534,9 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonCancel;
-            this.ClientSize = new System.Drawing.Size(840, 536);
+            this.ClientSize = new System.Drawing.Size(840, 616);
+            this.Controls.Add(this.radioButtonListening);
+            this.Controls.Add(this.radioButtonControlling);
             this.Controls.Add(this.buttonChangeMode);
             this.Controls.Add(this.labelVersion);
             this.Controls.Add(this.labelFeedback);
@@ -539,7 +571,7 @@
             this.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(2, 1, 2, 1);
-            this.MinimumSize = new System.Drawing.Size(855, 575);
+            this.MinimumSize = new System.Drawing.Size(855, 655);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "IEEE C37.118 Serial Port Scanner and Configuration Loader";
@@ -592,6 +624,8 @@
         private System.Windows.Forms.Label labelFeedback;
         internal System.Windows.Forms.Label labelVersion;
         private System.Windows.Forms.Button buttonChangeMode;
+        private System.Windows.Forms.RadioButton radioButtonListening;
+        private System.Windows.Forms.RadioButton radioButtonControlling;
     }
 }
 

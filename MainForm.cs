@@ -37,11 +37,11 @@ using GSF.Data;
 using GSF.Data.Model;
 using GSF.Diagnostics;
 using GSF.IO;
+using GSF.Reflection;
 using GSF.Threading;
 using GSF.Units;
 using Microsoft.VisualBasic.FileIO;
 using AutoConfigPortScanner.Model;
-using GSF.Reflection;
 
 namespace AutoConfigPortScanner
 {
@@ -97,7 +97,6 @@ namespace AutoConfigPortScanner
                 message.AppendLine($"    RTS Enabled: {Settings.RtsEnable}");
                 message.AppendLine();
                 message.AppendLine("Loaded non-UI Port Scan Settings:");
-                message.AppendLine($"         Connection Type: {(Settings.ControllingConnection ? "Active" : "Passive")} -> set to add \"{(Settings.ControllingConnection ? "CONFIG FRAME CONTROLLED" : "LISTEN ONLY")}\" connections for device configurations");
                 message.AppendLine($"             COM Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ResponseTimeout).TotalSeconds, 3)}");
                 message.AppendLine($"          Config Timeout: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.ConfigFrameTimeout).TotalSeconds, 3)}");
                 message.AppendLine($"      Disable Data Delay: {Time.ToElapsedTimeString(TimeSpan.FromMilliseconds(Settings.DisableDataDelay).TotalSeconds, 3)}");
@@ -120,8 +119,12 @@ namespace AutoConfigPortScanner
                 checkBoxRescan.Checked = Settings.Rescan;
                 checkBoxAutoStartParsingSequence.Checked = Settings.AutoStartParsingSequenceForScan;
                 textBoxSourceConfig.Text = Settings.SourceConfig;
+                radioButtonControlling.Checked = Settings.ControllingConnection;
+                radioButtonListening.Checked = !Settings.ControllingConnection;
 
                 m_formLoaded = true;
+                
+                ShowAssignedConnectionType();
 
                 if (Settings.AutoScan)
                     buttonScan_Click(sender, e);
@@ -163,6 +166,7 @@ namespace AutoConfigPortScanner
                 Settings.Rescan = checkBoxRescan.Checked;
                 Settings.AutoStartParsingSequenceForScan = checkBoxAutoStartParsingSequence.Checked;
                 Settings.SourceConfig = textBoxSourceConfig.Text;
+                Settings.ControllingConnection = radioButtonControlling.Checked;
             }
             catch (Exception ex)
             {
@@ -507,7 +511,7 @@ namespace AutoConfigPortScanner
 
         private void buttonChangeMode_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show(this, "Are you sure?", "Change Configured Mode", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            if (MessageBox.Show(this, $"Are you sure want to change all serial devices' configured modes to \"{(Settings.ControllingConnection ? "controlling" : "listening")}\" connections?", "Change Configured Mode", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
                 return;
 
             string configFile = FilePath.GetAbsolutePath(textBoxSourceConfig.Text);
@@ -516,25 +520,38 @@ namespace AutoConfigPortScanner
             if (error)
                 return;
 
+            AdoDataConnection connection;
+
             try
             {
-                AdoDataConnection connection = new(connectionString, dataProviderString);
+                connection = new(connectionString, dataProviderString);
                 StringBuilder message = new();
 
                 message.AppendLine();
                 message.AppendLine($"Opened database configured in \"{Path.GetFileName(configFile)}\".");
-                message.AppendLine($"");
-
-                ShowUpdateMessage(message.ToString());
+                message.AppendLine();
 
             }
             catch (Exception ex)
             {
                 ShowUpdateMessage($"ERROR: Failed while attempting to open database configured in \"{Path.GetFileName(configFile)}\": {ex.Message}");
                 m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
-                m_scanExecutionComplete.Set();
+                return;
             }
 
+            try
+            {
+                ShowUpdateMessage($"Changing all serial devices' configured modes to \"{(Settings.ControllingConnection ? "controlling" : "listening")}\" connections...");
+
+                UpdateAllDeviceConfigurationTypes(connection, Settings.ControllingConnection);
+                
+                ShowUpdateMessage($"{Environment.NewLine}Change complete. Mode is \"{(Settings.ControllingConnection ? "controlling" : "listening")}\".{Environment.NewLine}");
+            }
+            catch (Exception ex)
+            {
+                ShowUpdateMessage($"ERROR: Failed while change configured device mode: {ex.Message}");
+                m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+            }
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
@@ -545,6 +562,24 @@ namespace AutoConfigPortScanner
         private void linkLabelClearConsole_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             ClearUpdateMessages();
+        }
+
+        private void radioButtonControlling_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Settings.ControllingConnection == radioButtonControlling.Checked)
+                return;
+
+            Settings.ControllingConnection = radioButtonControlling.Checked;
+            ShowAssignedConnectionType();
+        }
+
+        private void radioButtonListening_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Settings.ControllingConnection == !radioButtonListening.Checked)
+                return;
+
+            Settings.ControllingConnection = !radioButtonListening.Checked;
+            ShowAssignedConnectionType();
         }
 
         #endregion
@@ -801,6 +836,12 @@ namespace AutoConfigPortScanner
             }
 
             return (nodeID, connectionString, dataProviderString, error);
+        }
+
+        private void ShowAssignedConnectionType()
+        {
+            if (m_formLoaded)
+                ShowUpdateMessage($"{Environment.NewLine}Assigned connection type: {(Settings.ControllingConnection ? "Active" : "Passive")} -> set to add \"{(Settings.ControllingConnection ? "CONFIG FRAME CONTROLLED" : "LISTEN ONLY")}\" connections for device configurations.{Environment.NewLine}");
         }
 
         #endregion

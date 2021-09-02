@@ -35,6 +35,8 @@ using GSF.Units.EE;
 using Phasor = AutoConfigPortScanner.Model.Phasor;
 using SignalType = AutoConfigPortScanner.Model.SignalType;
 
+#pragma warning disable CS0649
+
 namespace AutoConfigPortScanner
 {
     public static class TableOperationExtensions
@@ -114,12 +116,31 @@ namespace AutoConfigPortScanner
         private static string GetCleanAcronym(string acronym) => 
             Regex.Replace(acronym, @"[^A-Z0-9\-!_\.@#\$]", "", RegexOptions.IgnoreCase);
 
+        private static (bool, string) ExtractFieldAssignedSkipDisableRealTimeData(string connectionString)
+        {
+            Dictionary<string, string> connectionStringMap = connectionString.ParseKeyValuePairs();
+            bool skipDisableRealTimeData = false;
+
+            // Handle connection string parameters that are fields in the device table
+            if (connectionStringMap.ContainsKey("skipDisableRealTimeData"))
+            {
+                skipDisableRealTimeData = bool.Parse(connectionStringMap["skipDisableRealTimeData"]);
+                connectionStringMap.Remove("skipDisableRealTimeData");
+                connectionString = connectionStringMap.JoinKeyValuePairs();
+            }
+
+            return (skipDisableRealTimeData, connectionString);
+        }
+
         private static string ChangeConnectionStringToControlling(string connectionString)
         {
             Dictionary<string, string> connectionStringMap = connectionString.ParseKeyValuePairs();
 
             foreach (KeyValuePair<string, string> kvp in ControllingConnectionString.ParseKeyValuePairs())
-                connectionStringMap[kvp.Key] = kvp.Value;
+            {
+                if (connectionStringMap.ContainsKey(kvp.Key))
+                    connectionStringMap[kvp.Key] = kvp.Value;
+            }
 
             return connectionStringMap.JoinKeyValuePairs();
         }
@@ -129,7 +150,10 @@ namespace AutoConfigPortScanner
             Dictionary<string, string> connectionStringMap = connectionString.ParseKeyValuePairs();
 
             foreach (KeyValuePair<string, string> kvp in ListeningConnectionString.ParseKeyValuePairs())
-                connectionStringMap[kvp.Key] = kvp.Value;
+            {
+                if (connectionStringMap.ContainsKey(kvp.Key))
+                    connectionStringMap[kvp.Key] = kvp.Value;
+            }
 
             return connectionStringMap.JoinKeyValuePairs();
         }
@@ -140,9 +164,37 @@ namespace AutoConfigPortScanner
 
             foreach (Device device in deviceTable.QueryRecords())
             {
+                device.SkipDisableRealTimeData = !controlling;
                 device.ConnectionString = controlling ?
                     ChangeConnectionStringToControlling(device.ConnectionString) :
                     ChangeConnectionStringToListening(device.ConnectionString);
+            }
+        }
+
+        private bool SaveDeviceConfiguration(IConfigurationFrame configFrame, ushort comPort, ushort idCode, ScanParameters scanParams)
+        {
+            try
+            {
+                AdoDataConnection connection = scanParams.Connection;
+                TableOperations<SignalType> signalTypeTable = new(connection);
+                string configConnectionMode = scanParams.ControllingConnection ? ControllingConnectionString : ListeningConnectionString;
+                string connectionString = string.Format(ConnectionStringTemplate, comPort, Settings.BaudRate, Settings.Parity, Settings.StopBits, Settings.DataBits, Settings.DtrEnable, Settings.RtsEnable, configConnectionMode);
+
+                ShowUpdateMessage($"{Tab2}Saving \"{configFrame.Cells[0].StationName}\" configuration received on COM{comPort} with ID code {idCode}...");
+
+                m_deviceSignalTypes ??= signalTypeTable.LoadSignalTypes("PMU").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
+                m_phasorSignalTypes ??= signalTypeTable.LoadSignalTypes("Phasor").ToDictionary(key => key.Acronym, StringComparer.OrdinalIgnoreCase);
+
+                SaveDeviceConnection(configFrame, connectionString, comPort, idCode, scanParams);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ShowUpdateMessage($"{Tab2}ERROR: Failed while saving \"{configFrame.Cells[0].StationName}\" configuration: {ex.Message}");
+                m_log.Publish(MessageLevel.Error, nameof(AutoConfigPortScanner), exception: ex);
+
+                return false;
             }
         }
 
@@ -155,17 +207,10 @@ namespace AutoConfigPortScanner
 
             // Query existing device record, creating new one if not found
             Device device = scanParams.Devices.FindDeviceByComPort(comPort) ?? deviceTable.NewDevice();
-            Dictionary<string, string> connectionStringMap = connectionString.ParseKeyValuePairs();
-
-            bool skipDisableRealTimeData = false;
+            bool skipDisableRealTimeData;
 
             // Handle connection string parameters that are fields in the device table
-            if (connectionStringMap.ContainsKey("skipDisableRealTimeData"))
-            {
-                skipDisableRealTimeData = bool.Parse(connectionStringMap["skipDisableRealTimeData"]);
-                connectionStringMap.Remove("skipDisableRealTimeData");
-                connectionString = connectionStringMap.JoinKeyValuePairs();
-            }
+            (skipDisableRealTimeData, connectionString) = ExtractFieldAssignedSkipDisableRealTimeData(connectionString);
 
             IConfigurationCell deviceConfig = configFrame.Cells[0];
 

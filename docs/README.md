@@ -19,22 +19,22 @@ AutoConfigPortScanner [options]
 
 | Short | Long | Description |
 |:-----:| ---- | ----------- |
-| `-b` | `--BaudRate` | Defines the serial baud rate. Standard values: `110`, `300`, `600`, `1200`, `2400`, `4800`, `9600`, `14400`, `19200`, `38400`, `57600`, `115200`, `128000`, or `256000`. |
-| `-d` | `--DataBits` | Defines the standard length of data bits per byte. Standard values: `5`, `6`, `7` or `8`. |
-| `-p` | `--Parity` | Defines the parity-checking protocol. Value is one of: `Even`, `Mark`, `None`, `Odd` or `Space`. |
-| `-s` | `--StopBits` | Defines the standard number of stopbits per byte. Value is one of: `None`, `One`, `OnePointFive` or `Two`. |
-| `-t` | `--DtrEnable` | Defines boolean value, `true` or `false`, that enables the Data Terminal Ready (DTR) signal during serial communication. |
-| `-r` | `--RtsEnable` | Defines boolean value, `true` or `false`, indicating whether the Request to Send (RTS) signal is enabled during serial communication. |
-| `-x` | `--AutoScan` | Defines boolean value, `true` or `false`, indicating whether the tool should start scan automatically on start. (unpersisted, command line only setting) |
-| `-i` | `--AutoRemoveIDs` | Defines boolean value, `true` or `false`, indicating tool should auto-remove ID codes from list as they are completed. (unpersisted, command line only setting) |
-| `-a` | <span style="white-space: nowrap">`--ControllingConnection`</span> | Defines boolean value, `true` or `false`, indicating whether added device configuration should be set for a controlling (active) or listening (passive) connection. |
-| `-n` | `--ResponseTimeout` | Defines the maximum time, in milliseconds, to wait for a serial response. |
-| `-c` | `--ConfigFrameTimeout` | Defines the maximum time, in milliseconds, to wait for a configuration frame. |
-| `-w` | `--DisableDataDelay` | Defined the delay time, in milliseconds, to wait after sending the DisableRealTimeData command to a device. |
-| | `--StartComPort` | Defines the starting COM port number for the scan. |
-| | `--EndComPort` | Defines the ending COM port number for the scan. |
-| | `--StartIDCode` | Defines the starting IEEE C37.118 ID code for the scan. |
-| | `--EndIDCode` | Defines the ending IEEE C37.118 ID code for the scan. |
+| `‑b` | `‑‑BaudRate` | Defines the serial baud rate. Standard values: `110`, `300`, `600`, `1200`, `2400`, `4800`, `9600`, `14400`, `19200`, `38400`, `57600`, `115200`, `128000`, or `256000`. |
+| `‑d` | `‑‑DataBits` | Defines the standard length of data bits per byte. Standard values: `5`, `6`, `7` or `8`. |
+| `‑p` | `‑‑Parity` | Defines the parity-checking protocol. Value is one of: `Even`, `Mark`, `None`, `Odd` or `Space`. |
+| `‑s` | `‑‑StopBits` | Defines the standard number of stopbits per byte. Value is one of: `None`, `One`, `OnePointFive` or `Two`. |
+| `‑t` | `‑‑DtrEnable` | Defines boolean value, `true` or `false`, that enables the Data Terminal Ready (DTR) signal during serial communication. |
+| `‑r` | `‑‑RtsEnable` | Defines boolean value, `true` or `false`, indicating whether the Request to Send (RTS) signal is enabled during serial communication. |
+| `‑x` | `‑‑AutoScan` | Defines boolean value, `true` or `false`, indicating whether the tool should start scan automatically on start. (unpersisted, command line only setting) |
+| `‑i` | `‑‑AutoRemoveIDs` | Defines boolean value, `true` or `false`, indicating tool should auto-remove ID codes from list as they are completed. (unpersisted, command line only setting) |
+| `‑a` | `‑‑ControllingConnection` | Defines boolean value, `true` or `false`, indicating whether added device configuration should be set for a controlling (active) or listening (passive) connection. |
+| `‑n` | `‑‑ResponseTimeout` | Defines the maximum time, in milliseconds, to wait for a serial response. |
+| `‑c` | `‑‑ConfigFrameTimeout` | Defines the maximum time, in milliseconds, to wait for a configuration frame. |
+| `‑w` | `‑‑DisableDataDelay` | Defined the delay time, in milliseconds, to wait after sending the DisableRealTimeData command to a device. |
+| | `‑‑StartComPort` | Defines the starting COM port number for the scan. |
+| | `‑‑EndComPort` | Defines the ending COM port number for the scan. |
+| | `‑‑StartIDCode` | Defines the starting IEEE C37.118 ID code for the scan. |
+| | `‑‑EndIDCode` | Defines the ending IEEE C37.118 ID code for the scan. |
 
 ## Examples
 * Scan serial ports using 9600 baud:

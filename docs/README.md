@@ -27,7 +27,7 @@ AutoConfigPortScanner [options]
 | `-r` | `--RtsEnable` | Defines boolean value, `true` or `false`, indicating whether the Request to Send (RTS) signal is enabled during serial communication. |
 | `-x` | `--AutoScan` | Defines boolean value, `true` or `false`, indicating whether the tool should start scan automatically on start. (unpersisted, command line only setting) |
 | `-i` | `--AutoRemoveIDs` | Defines boolean value, `true` or `false`, indicating tool should auto-remove ID codes from list as they are completed. (unpersisted, command line only setting) |
-| `-a` | `--ControllingConnection` | Defines boolean value, `true` or `false`, indicating whether added device configuration should be set for a controlling (active) or listening (passive) connection. |
+| `-a` | <nobr>`--ControllingConnection`</nobr> | Defines boolean value, `true` or `false`, indicating whether added device configuration should be set for a controlling (active) or listening (passive) connection. |
 | `-n` | `--ResponseTimeout` | Defines the maximum time, in milliseconds, to wait for a serial response. |
 | `-c` | `--ConfigFrameTimeout` | Defines the maximum time, in milliseconds, to wait for a configuration frame. |
 | `-w` | `--DisableDataDelay` | Defined the delay time, in milliseconds, to wait after sending the DisableRealTimeData command to a device. |
